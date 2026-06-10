@@ -11,6 +11,7 @@ import Learning from './sections/Learning';
 import Volunteering from './sections/Volunteering';
 import Achievements from './sections/Achievements';
 import BackToTop from './components/ui/BackToTop';
+import Autopilot from './components/ui/Autopilot';
 import CustomCursor from './components/ui/CustomCursor';
 import Preloader from './components/ui/Preloader';
 import SpotlightAura from './components/ui/SpotlightAura';
@@ -52,6 +53,7 @@ function App() {
       smoothWheel: true,
       wheelMultiplier: 1.15,
     });
+    window.lenis = lenis;
 
     lenis.on('scroll', ScrollTrigger.update);
 
@@ -62,6 +64,7 @@ function App() {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      window.lenis = null;
       lenis.destroy();
       gsap.ticker.remove(updateTicker);
     };
@@ -149,6 +152,7 @@ function App() {
 
       {/* Floating Action Elements */}
       {isBooted && <BackToTop />}
+      {isBooted && <Autopilot />}
 
       {/* Terminal Contact Footer */}
       {isBooted && <Footer />}
