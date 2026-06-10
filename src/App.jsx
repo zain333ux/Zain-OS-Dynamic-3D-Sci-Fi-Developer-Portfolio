@@ -4,7 +4,9 @@ import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import Hero from './sections/Hero';
 import About from './sections/About';
-import InteractiveDeck from './sections/InteractiveDeck';
+import Education from './sections/Education';
+import Skills from './sections/Skills';
+import Projects from './sections/Projects';
 import Learning from './sections/Learning';
 import Volunteering from './sections/Volunteering';
 import Achievements from './sections/Achievements';
@@ -136,7 +138,9 @@ function App() {
         <main className="relative z-10" style={{ perspective: '1000px' }}>
           <Hero />
           <About />
-          <InteractiveDeck />
+          <Education />
+          <Skills />
+          <Projects />
           <Learning />
           <Volunteering />
           <Achievements />
