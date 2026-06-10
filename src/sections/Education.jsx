@@ -4,6 +4,10 @@ import Badge from '../components/ui/Badge';
 import Reveal from '../components/ui/Reveal';
 import CodeBackdrop from '../components/ui/CodeBackdrop';
 import { educationList } from '../data/education';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const Education = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -21,24 +25,25 @@ const Education = () => {
   // Responsive tracking
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
 
-  // Viewport detection via IntersectionObserver
+  // Viewport detection via GSAP ScrollTrigger to bypass browser 3D perspective bugs
   useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      setIsIntersecting(entry.isIntersecting);
-      if (entry.isIntersecting) {
-        // Reset to first card (BSCS) when user scrolls into view
-        setActiveIndex(0);
-      }
-    }, {
-      threshold: 0.15, // trigger when 15% visible
+    if (typeof window === 'undefined' || !sectionRef.current) return;
+
+    const trigger = ScrollTrigger.create({
+      trigger: sectionRef.current,
+      start: 'top 85%',
+      end: 'bottom 15%',
+      onToggle: (self) => {
+        setIsIntersecting(self.isActive);
+        if (self.isActive) {
+          // Reset to first card when section enters viewport
+          setActiveIndex(0);
+        }
+      },
     });
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
     return () => {
-      observer.disconnect();
+      trigger.kill();
     };
   }, []);
 
