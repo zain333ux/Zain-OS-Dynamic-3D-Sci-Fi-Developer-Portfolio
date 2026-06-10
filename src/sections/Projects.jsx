@@ -17,68 +17,83 @@ const filters = [
 
 const Projects = () => {
   const [activeFilter, setActiveFilter] = useState("All");
-  const containerRef = useRef(null);
-  const [isDown, setIsDown] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeftState, setScrollLeftState] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  
+  // Auto-play state
+  const [isAutoPlayActive, setIsAutoPlayActive] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Drag states
+  const [dragStartX, setDragStartX] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  
+  // Responsive radius tracking
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
 
   // Filter projects by checking the categories array
   const filteredProjects = activeFilter === "All"
     ? projects
     : projects.filter(project => project.categories.includes(activeFilter));
 
-  // Reset scroll container position when filter changes
+  // Reset active index when filter changes
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollLeft = 0;
-      setScrollProgress(0);
-    }
+    setActiveIndex(0);
   }, [activeFilter]);
 
+  // Track window size for radius adjustments
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Autoplay loop timer
+  useEffect(() => {
+    if (!isAutoPlayActive || isHovered || filteredProjects.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % filteredProjects.length);
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [isAutoPlayActive, isHovered, filteredProjects.length]);
+
+  const handlePrev = () => {
+    if (filteredProjects.length <= 1) return;
+    setActiveIndex((prev) => (prev - 1 + filteredProjects.length) % filteredProjects.length);
+  };
+
+  const handleNext = () => {
+    if (filteredProjects.length <= 1) return;
+    setActiveIndex((prev) => (prev + 1) % filteredProjects.length);
+  };
+
+  // Drag handlers for discrete swipe tracking
   const handleMouseDown = (e) => {
-    // Avoid dragging issues when clicking on interactive elements like buttons/links
     if (e.target.closest('a') || e.target.closest('button')) return;
-    setIsDown(true);
-    setStartX(e.pageX - containerRef.current.offsetLeft);
-    setScrollLeftState(containerRef.current.scrollLeft);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDown(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDown(false);
+    setDragStartX(e.pageX);
+    setIsDragging(true);
   };
 
   const handleMouseMove = (e) => {
-    if (!isDown) return;
-    e.preventDefault();
-    const x = e.pageX - containerRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5; // Drag sensitivity
-    containerRef.current.scrollLeft = scrollLeftState - walk;
-  };
+    if (!isDragging || dragStartX === null) return;
+    
+    const currentX = e.pageX;
+    const diffX = currentX - dragStartX;
+    const threshold = 70; // Pixel threshold to rotate card
 
-  const handleScroll = () => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-    const maxScroll = container.scrollWidth - container.clientWidth;
-    if (maxScroll <= 0) {
-      setScrollProgress(0);
-      return;
+    if (diffX > threshold) {
+      handlePrev();
+      setDragStartX(currentX); // reset base so drag can continue
+    } else if (diffX < -threshold) {
+      handleNext();
+      setDragStartX(currentX);
     }
-    setScrollProgress(container.scrollLeft / maxScroll);
   };
 
-  const scroll = (direction) => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-    const scrollAmount = 480; // Scroll distance per click
-    container.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth',
-    });
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setDragStartX(null);
   };
 
   const renderLinkButton = (key, link) => {
@@ -122,6 +137,13 @@ const Projects = () => {
     );
   };
 
+  // Calculate radius based on responsive screen width
+  const getRadius = () => {
+    if (windowWidth >= 1200) return 380;
+    if (windowWidth >= 768) return 280;
+    return 140; // Compact radius for mobile screens
+  };
+
   return (
     <section id="projects" className="section-pad relative overflow-hidden border-t border-cardBorder">
       <CodeBackdrop type="projects" />
@@ -136,16 +158,28 @@ const Projects = () => {
 
           {/* Slider Controls */}
           <Reveal delay={0.05}>
-            <div className="flex gap-2 font-mono text-[10px]">
+            <div className="flex items-center gap-3 font-mono text-[10px]">
+              {/* Play/Pause Toggle Indicator */}
               <button
-                onClick={() => scroll('left')}
-                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer"
+                onClick={() => setIsAutoPlayActive(!isAutoPlayActive)}
+                className={`flex items-center gap-2 px-3 py-1.5 border border-cardBorder bg-cardBg hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer`}
+                title={isAutoPlayActive ? "Click to Pause Auto-rotation" : "Click to Play Auto-rotation"}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${isAutoPlayActive ? 'bg-accentPurple shadow-glowPurple animate-pulse' : 'bg-red-500'}`} />
+                <span>{isAutoPlayActive ? "AUTO: PLAYING" : "AUTO: PAUSED"}</span>
+              </button>
+
+              <button
+                onClick={handlePrev}
+                disabled={filteredProjects.length <= 1}
+                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary disabled:opacity-30 disabled:pointer-events-none transition-all duration-200 rounded-sm select-none cursor-pointer"
               >
                 &lt;&lt; PREV
               </button>
               <button
-                onClick={() => scroll('right')}
-                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer"
+                onClick={handleNext}
+                disabled={filteredProjects.length <= 1}
+                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary disabled:opacity-30 disabled:pointer-events-none transition-all duration-200 rounded-sm select-none cursor-pointer"
               >
                 NEXT &gt;&gt;
               </button>
@@ -173,87 +207,138 @@ const Projects = () => {
           })}
         </div>
 
-        {/* Projects Horizontal Slider */}
-        <div
-          ref={containerRef}
+        {/* 3D Rotating Carousel Container */}
+        <div 
+          className="relative w-full h-[520px] md:h-[580px] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => { setIsHovered(false); handleMouseUp(); }}
           onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeave}
-          onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
-          onScroll={handleScroll}
-          className="flex flex-row gap-6 overflow-x-auto scrollbar-none py-4 cursor-grab active:cursor-grabbing snap-x snap-mandatory relative z-10 select-none"
+          onMouseUp={handleMouseUp}
+          style={{ perspective: '1200px' }}
         >
-          {filteredProjects.map((project, idx) => (
-            <div key={project.id} className="snap-start flex-shrink-0 w-[88vw] md:w-[500px] lg:w-[540px]">
-              <Card className="flex flex-col justify-between h-full space-y-6 group relative overflow-hidden">
-                <ProjectCardVisualizer projectId={project.id} />
-                <div className="relative z-10 flex flex-col justify-between h-full space-y-6 flex-1">
-                  <div className="space-y-4">
-                    {/* Title and Badge */}
-                    <div className="flex justify-between items-start gap-4">
-                      <h3 className="text-base md:text-lg font-bold text-textPrimary leading-snug group-hover:text-accentPurple transition-colors">
-                        {project.title}
-                      </h3>
-                      <span className="text-[9px] font-mono py-0.5 px-2 bg-cardBg border border-cardBorder text-accentCyan uppercase rounded select-none shrink-0">
-                        {project.category}
-                      </span>
-                    </div>
-
-                    {/* 1-Line Summary */}
-                    <p className="text-xs md:text-sm text-textMuted leading-relaxed">
-                      {project.summary}
-                    </p>
-
-                    {/* Technology Badges */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {project.tech.map((t, idx) => (
-                        <Badge key={idx} name={t} className="px-2 py-0.5" />
-                      ))}
-                    </div>
-
-                    {/* Highlights List */}
-                    <div className="pt-2">
-                      <ul className="text-xs text-textMuted font-mono space-y-1.5 list-disc list-inside">
-                        {project.highlights.map((hl, idx) => (
-                          <li key={idx} className="leading-relaxed">{hl}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Footer Block */}
-                  {Object.keys(project.links).length > 0 && (
-                    <div className="space-y-4 pt-4 border-t border-cardBorder/30">
-                      {/* Resource Links */}
-                      <div className="flex flex-wrap gap-2">
-                        {Object.entries(project.links).map(([key, link]) => renderLinkButton(key, link))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </Card>
+          {filteredProjects.length === 0 ? (
+            <div className="text-center py-16 border border-dashed border-cardBorder rounded-md w-full">
+              <p className="font-mono text-sm text-textMuted">// NO COMPATIBLE MODULES FOUND FOR SELECTED FILTER</p>
             </div>
-          ))}
+          ) : (
+            filteredProjects.map((project, idx) => {
+              const totalCards = filteredProjects.length;
+              
+              // Trigonometric calculations for 3D positioning
+              let transformStyle = {};
+              
+              if (totalCards === 1) {
+                transformStyle = {
+                  transform: 'translate3d(0px, 0px, 0px) rotateY(0deg) scale(1)',
+                  zIndex: 10,
+                  opacity: 1,
+                  pointerEvents: 'auto'
+                };
+              } else {
+                // Shortest distance wrapping
+                let diff = idx - activeIndex;
+                if (diff < -totalCards / 2) diff += totalCards;
+                if (diff > totalCards / 2) diff -= totalCards;
+                
+                const angle = (diff * 2 * Math.PI) / totalCards;
+                const radius = getRadius();
+                
+                const tx = Math.sin(angle) * radius;
+                const tz = (Math.cos(angle) - 1) * radius;
+                // Gently tilt Y angle facing inward
+                const ry = angle * (180 / Math.PI) * 0.45;
+                const scale = 0.8 + 0.2 * Math.cos(angle);
+                const opacity = 0.18 + 0.82 * (Math.cos(angle) + 1) / 2;
+                const zIndex = Math.round((Math.cos(angle) + 1) * 100);
+                
+                // Only allow click interactions on the front-most card to preserve clean UX
+                const pointerEvents = Math.cos(angle) > 0.82 ? 'auto' : 'none';
+
+                transformStyle = {
+                  transform: `translate3d(${tx}px, 0, ${tz}px) rotateY(${ry}deg) scale(${scale})`,
+                  zIndex: zIndex,
+                  opacity: opacity,
+                  pointerEvents: pointerEvents
+                };
+              }
+
+              return (
+                <div 
+                  key={project.id} 
+                  className="absolute w-[88vw] sm:w-[460px] md:w-[480px] lg:w-[500px] h-[390px] md:h-[430px] transition-all duration-700 ease-out"
+                  style={{
+                    ...transformStyle,
+                    transformStyle: 'preserve-3d',
+                    backfaceVisibility: 'hidden',
+                  }}
+                >
+                  <Card className="flex flex-col justify-between h-full space-y-4 group relative overflow-hidden">
+                    <ProjectCardVisualizer projectId={project.id} />
+                    <div className="relative z-10 flex flex-col justify-between h-full space-y-4 flex-1">
+                      <div className="space-y-3">
+                        {/* Title and Badge */}
+                        <div className="flex justify-between items-start gap-4">
+                          <h3 className="text-base md:text-lg font-bold text-textPrimary leading-snug group-hover:text-accentPurple transition-colors">
+                            {project.title}
+                          </h3>
+                          <span className="text-[9px] font-mono py-0.5 px-2 bg-cardBg border border-cardBorder text-accentCyan uppercase rounded select-none shrink-0">
+                            {project.category}
+                          </span>
+                        </div>
+
+                        {/* 1-Line Summary */}
+                        <p className="text-xs md:text-sm text-textMuted leading-relaxed">
+                          {project.summary}
+                        </p>
+
+                        {/* Technology Badges */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {project.tech.map((t, idx) => (
+                            <Badge key={idx} name={t} className="px-2 py-0.5" />
+                          ))}
+                        </div>
+
+                        {/* Highlights List */}
+                        <div className="pt-2">
+                          <ul className="text-[11px] text-textMuted font-mono space-y-1.5 list-disc list-inside">
+                            {project.highlights.map((hl, idx) => (
+                              <li key={idx} className="leading-relaxed">{hl}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Footer Block */}
+                      {Object.keys(project.links).length > 0 && (
+                        <div className="space-y-4 pt-3 border-t border-cardBorder/30">
+                          {/* Resource Links */}
+                          <div className="flex flex-wrap gap-2">
+                            {Object.entries(project.links).map(([key, link]) => renderLinkButton(key, link))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              );
+            })
+          )}
         </div>
 
-        {/* Empty Search Fallback */}
-        {filteredProjects.length === 0 && (
-          <div className="text-center py-16 border border-dashed border-cardBorder rounded-md">
-            <p className="font-mono text-sm text-textMuted">// NO COMPATIBLE MODULES FOUND FOR SELECTED FILTER</p>
+        {/* Console-style Slide Indicator Dots */}
+        {filteredProjects.length > 1 && (
+          <div className="flex justify-center items-center gap-2 pt-2">
+            {filteredProjects.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveIndex(idx)}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === activeIndex ? 'bg-accentPurple w-4 shadow-glowPurple' : 'bg-cardBorder hover:bg-textMuted'}`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
           </div>
         )}
-
-        {/* Console-style Progress Tracker */}
-        <div className="flex items-center justify-between font-mono text-[9px] text-textMuted pt-4 max-w-sm mx-auto">
-          <span>[SYSTEM: MODULES_L]</span>
-          <div className="w-48 h-[2px] bg-cardBorder relative overflow-hidden rounded-full mx-4">
-            <div
-              className="absolute top-0 bottom-0 left-0 bg-accentPurple transition-transform duration-100 origin-left"
-              style={{ transform: `scaleX(${scrollProgress})`, width: '100%' }}
-            />
-          </div>
-          <span>[SYSTEM: MODULES_R]</span>
-        </div>
 
       </div>
     </section>
