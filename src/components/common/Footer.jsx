@@ -4,6 +4,7 @@ import Reveal from '../ui/Reveal';
 import CodeBackdrop from '../ui/CodeBackdrop';
 import { contact } from '../../data/contact';
 import { Mail, Clipboard, ClipboardCheck } from 'lucide-react';
+import InteractiveConsole from '../ui/InteractiveConsole';
 
 const Footer = () => {
   const [copied, setCopied] = useState(false);
@@ -73,6 +74,11 @@ const Footer = () => {
               <span>LinkedIn</span>
             </Button>
           </div>
+        </Reveal>
+
+        {/* Interactive CLI Console Emulator */}
+        <Reveal delay={0.2} className="pt-4">
+          <InteractiveConsole />
         </Reveal>
 
         {/* Footnotes */}
