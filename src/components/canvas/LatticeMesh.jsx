@@ -194,7 +194,7 @@ const LatticeMesh = ({ shouldReduceMotion }) => {
           />
         </bufferGeometry>
         <lineBasicMaterial 
-          color="#7C3AED" 
+          color="#618764" 
           transparent 
           opacity={0.16} 
           linewidth={1}
@@ -210,7 +210,7 @@ const LatticeMesh = ({ shouldReduceMotion }) => {
           />
         </bufferGeometry>
         <pointsMaterial
-          color="#06B6D4"
+          color="#9CB080"
           size={0.07}
           sizeAttenuation
           transparent

@@ -87,7 +87,7 @@ const ProjectCardVisualizer = ({ projectId }) => {
         angle: Math.random() * Math.PI * 2,
         speed: Math.random() * 0.5 + 0.2,
         dist: Math.random() * 120 + 20,
-        color: Math.random() > 0.5 ? '#06B6D4' : '#7C3AED'
+        color: Math.random() > 0.5 ? '#9CB080' : '#618764'
       });
     }
 
@@ -104,8 +104,8 @@ const ProjectCardVisualizer = ({ projectId }) => {
 
       if (projectId === 'economic-network-dynamics') {
         // CPI dynamics force directed graph simulation
-        ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
-        ctx.fillStyle = '#06B6D4';
+        ctx.strokeStyle = 'rgba(97, 135, 100, 0.15)';
+        ctx.fillStyle = '#9CB080';
 
         // Gravitational force pull to mouse on hover
         const targetX = isHovered ? mouse.x : w / 2;
@@ -167,7 +167,7 @@ const ProjectCardVisualizer = ({ projectId }) => {
         // Gradient descent saddle mesh visualizer
         const cols = 16;
         const rows = 12;
-        ctx.strokeStyle = '#7C3AED';
+        ctx.strokeStyle = '#618764';
         ctx.lineWidth = 0.55;
 
         // Rotation angles driven by scroll/mouse sway
@@ -229,11 +229,11 @@ const ProjectCardVisualizer = ({ projectId }) => {
         }
 
         const descentPt = projectPoint(gdPoint.u, gdPoint.v);
-        ctx.fillStyle = '#06B6D4';
+        ctx.fillStyle = '#9CB080';
         ctx.beginPath();
         ctx.arc(descentPt.x, descentPt.y, 4, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = 'rgba(6, 182, 212, 0.4)';
+        ctx.strokeStyle = 'rgba(156, 176, 128, 0.4)';
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -247,8 +247,8 @@ const ProjectCardVisualizer = ({ projectId }) => {
         const spacing = (w * 0.7) / (nodeCount - 1) * (0.6 + cursorRatio * 0.8);
         const startX = (w - spacing * (nodeCount - 1)) / 2;
 
-        ctx.strokeStyle = 'rgba(124, 58, 237, 0.25)';
-        ctx.fillStyle = '#7C3AED';
+        ctx.strokeStyle = 'rgba(97, 135, 100, 0.25)';
+        ctx.fillStyle = '#618764';
         ctx.lineWidth = 1;
 
         // Draw network link pathways
@@ -265,27 +265,27 @@ const ProjectCardVisualizer = ({ projectId }) => {
           const nx = startX + i * spacing;
           const oscY = cy + Math.sin(time * 3.5 + i) * 6; // oscillate vertically to look alive
           
-          ctx.fillStyle = i === 2 || i === 3 ? '#06B6D4' : '#7C3AED';
+          ctx.fillStyle = i === 2 || i === 3 ? '#9CB080' : '#618764';
           ctx.beginPath();
           ctx.arc(nx, oscY, 5, 0, Math.PI * 2);
           ctx.fill();
 
           if (isHovered && i === 2) {
             ctx.font = '7px monospace';
-            ctx.fillStyle = '#06B6D4';
+            ctx.fillStyle = '#9CB080';
             ctx.fillText('OPTIMAL_N', nx - 18, oscY - 10);
           }
         }
 
       } else if (projectId === 'metal-slug-2d-engine') {
         // SFML Game engine colliders bouncing check
-        ctx.strokeStyle = '#7C3AED';
-        ctx.fillStyle = '#7C3AED';
+        ctx.strokeStyle = '#618764';
+        ctx.fillStyle = '#618764';
 
         // Custom cursor boundary collider
         const cursorR = 35;
         if (isHovered) {
-          ctx.strokeStyle = 'rgba(6, 182, 212, 0.25)';
+          ctx.strokeStyle = 'rgba(156, 176, 128, 0.25)';
           ctx.lineWidth = 0.8;
           ctx.beginPath();
           ctx.arc(mouse.x, mouse.y, cursorR, 0, Math.PI * 2);
@@ -324,7 +324,7 @@ const ProjectCardVisualizer = ({ projectId }) => {
             ctx.arc(ent.x, ent.y, ent.size + 1.5, 0, Math.PI * 2);
             ctx.fill();
           } else {
-            ctx.fillStyle = '#7C3AED';
+            ctx.fillStyle = '#618764';
             ctx.beginPath();
             ctx.arc(ent.x, ent.y, ent.size, 0, Math.PI * 2);
             ctx.fill();

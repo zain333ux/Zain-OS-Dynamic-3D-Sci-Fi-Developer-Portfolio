@@ -2,20 +2,20 @@
 
 /* Custom Mesh Gradient Background for Hero/Global fallbacks */
 .bg-mesh-gradient {
-  background-color: #0b0f19;
+  background-color: #0D1315;
   background-image: 
-    radial-gradient(at 10% 20%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
-    radial-gradient(at 90% 80%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(11, 15, 25, 1) 0px, transparent 80%);
+    radial-gradient(at 10% 20%, rgba(156, 176, 128, 0.12) 0px, transparent 50%),
+    radial-gradient(at 90% 80%, rgba(97, 135, 100, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(13, 19, 21, 1) 0px, transparent 80%);
 }
 
 /* Monospace Glow Accents */
 .text-glow-purple {
-  text-shadow: 0 0 10px rgba(124, 58, 237, 0.45);
+  text-shadow: 0 0 10px rgba(156, 176, 128, 0.45);
 }
 
 .text-glow-cyan {
-  text-shadow: 0 0 10px rgba(6, 182, 212, 0.45);
+  text-shadow: 0 0 10px rgba(97, 135, 100, 0.45);
 }
 
 /* Custom Scrollbar Styles for Developer Console Theme */
@@ -25,18 +25,18 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B0F19;
+  background: #0D1315;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(156, 176, 128, 0.12);
   border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(156, 176, 128, 0.03);
   transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #7C3AED;
+  background: #9CB080;
 }
 
 /* Atmospheric Film / CRT Noise Overlay */

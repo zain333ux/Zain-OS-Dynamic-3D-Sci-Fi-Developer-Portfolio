@@ -75,7 +75,7 @@ const Preloader = ({ onComplete }) => {
     tl.to(crtLineRef.current, {
       scaleY: 120, // Expands to cover full height
       opacity: 0.05,
-      backgroundColor: '#06B6D4',
+      backgroundColor: '#9CB080',
       duration: 0.4,
       ease: 'power2.inOut',
     });
@@ -154,7 +154,7 @@ const Preloader = ({ onComplete }) => {
     tl.to(crtLineRef.current, {
       scaleY: 1,
       opacity: 1,
-      backgroundColor: '#7C3AED', // shift to purple on close
+      backgroundColor: '#618764', // shift to green on close
       duration: 0.3,
       ease: 'power4.out'
     }, '-=0.2');

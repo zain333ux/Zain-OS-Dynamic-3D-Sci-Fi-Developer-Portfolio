@@ -102,14 +102,14 @@ const CustomCursor = () => {
             cx="22" 
             cy="22" 
             r="19" 
-            stroke={isHovered ? "#06B6D4" : "#7C3AED"} 
+            stroke={isHovered ? "#9CB080" : "#618764"} 
             strokeWidth="2.2" 
             fill="none"
             strokeDasharray={circumference}
             animate={{
               strokeDashoffset: strokeDashoffset,
-              stroke: isHovered ? "#06B6D4" : "#7C3AED",
-              filter: isHovered ? 'drop-shadow(0 0 4px rgba(6, 182, 212, 0.6))' : 'none'
+              stroke: isHovered ? "#9CB080" : "#618764",
+              filter: isHovered ? 'drop-shadow(0 0 4px rgba(156, 176, 128, 0.6))' : 'none'
             }}
             transition={{ duration: 0.05 }}
           />
