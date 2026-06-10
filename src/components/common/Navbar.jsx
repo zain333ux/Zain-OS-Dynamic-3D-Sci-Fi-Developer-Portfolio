@@ -15,7 +15,7 @@ const Navbar = () => {
   });
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 glass-card bg-bgDark/70 backdrop-blur-md border-b border-cardBorder relative">
+    <nav className="fixed top-0 left-0 w-full z-50 glass-card bg-bgDark/70 backdrop-blur-md border-b border-cardBorder">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="font-mono text-textPrimary font-bold text-sm tracking-wider hover:text-accentPurple transition-colors">
           <a href="#home"><ScrambleText text="[ZAIN_UL_ABIDEEN]" /></a>

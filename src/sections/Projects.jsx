@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
-import ProjectDrawer from '../components/common/ProjectDrawer';
 import Reveal from '../components/ui/Reveal';
 import CodeBackdrop from '../components/ui/CodeBackdrop';
 import ProjectCardVisualizer from '../components/ui/ProjectCardVisualizer';
@@ -18,18 +17,13 @@ const filters = [
 
 const Projects = () => {
   const [activeFilter, setActiveFilter] = useState("All");
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Filter projects by checking the categories array
   const filteredProjects = activeFilter === "All"
     ? projects
     : projects.filter(project => project.categories.includes(activeFilter));
 
-  const handleOpenDrawer = (project) => {
-    setSelectedProject(project);
-    setIsDrawerOpen(true);
-  };
+  // Open details drawer removed as requested
 
   const renderLinkButton = (key, link) => {
     const isComingSoon = link.type === 'coming-soon';
@@ -112,8 +106,7 @@ const Projects = () => {
           {filteredProjects.map((project, idx) => (
             <Reveal key={project.id} delay={idx * 0.05} className="h-full">
               <Card 
-                onClick={() => handleOpenDrawer(project)}
-                className="flex flex-col justify-between h-full space-y-6 group hover:border-accentPurple/40 relative overflow-hidden"
+                className="flex flex-col justify-between h-full space-y-6 group relative overflow-hidden"
               >
                 <ProjectCardVisualizer projectId={project.id} />
                 <div className="relative z-10 flex flex-col justify-between h-full space-y-6 flex-1">
@@ -151,21 +144,14 @@ const Projects = () => {
                   </div>
 
                   {/* Footer Block */}
-                  <div className="space-y-4 pt-4 border-t border-cardBorder/30">
-                    {/* Resource Links */}
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(project.links).map(([key, link]) => renderLinkButton(key, link))}
+                  {Object.keys(project.links).length > 0 && (
+                    <div className="space-y-4 pt-4 border-t border-cardBorder/30">
+                      {/* Resource Links */}
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(project.links).map(([key, link]) => renderLinkButton(key, link))}
+                      </div>
                     </div>
-
-                    {/* View Details CTA */}
-                    <Button 
-                      variant="primary" 
-                      onClick={() => handleOpenDrawer(project)}
-                      className="w-full text-[10px] justify-center"
-                    >
-                      View Details
-                    </Button>
-                  </div>
+                  )}
                 </div>
               </Card>
             </Reveal>
@@ -180,12 +166,6 @@ const Projects = () => {
         )}
       </div>
 
-      {/* Dynamic Slide-out Readout Drawer Panel */}
-      <ProjectDrawer 
-        project={selectedProject} 
-        isOpen={isDrawerOpen} 
-        onClose={() => setIsDrawerOpen(false)} 
-      />
     </section>
   );
 };
