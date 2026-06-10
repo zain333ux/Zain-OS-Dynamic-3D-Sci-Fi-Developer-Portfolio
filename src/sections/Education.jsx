@@ -32,7 +32,7 @@ const Education = () => {
 
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % educationList.length);
-    }, 4000);
+    }, 3000);
 
     return () => clearInterval(timer);
   }, [isAutoPlayActive, isHovered]);

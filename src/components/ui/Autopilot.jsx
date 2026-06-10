@@ -11,7 +11,7 @@ const SECTIONS = [
   { id: '#achievements', name: 'SYSTEM_CHECKPOINTS (ACHIEVEMENTS)' },
 ];
 
-const DWELL_DURATION = 6000; // 6 seconds per section
+const DWELL_DURATION = 5000; // 5 seconds per section
 
 const Autopilot = () => {
   const [isActive, setIsActive] = useState(false);

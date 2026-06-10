@@ -53,7 +53,7 @@ const Projects = () => {
 
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % filteredProjects.length);
-    }, 4000);
+    }, 3000);
 
     return () => clearInterval(timer);
   }, [isAutoPlayActive, isHovered, filteredProjects.length]);
