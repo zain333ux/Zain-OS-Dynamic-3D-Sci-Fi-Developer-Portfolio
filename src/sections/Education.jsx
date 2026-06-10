@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Reveal from '../components/ui/Reveal';
@@ -6,53 +6,79 @@ import CodeBackdrop from '../components/ui/CodeBackdrop';
 import { educationList } from '../data/education';
 
 const Education = () => {
-  const containerRef = useRef(null);
-  const [isDown, setIsDown] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeftState, setScrollLeftState] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  
+  // Auto-play state
+  const [isAutoPlayActive, setIsAutoPlayActive] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Drag states
+  const [dragStartY, setDragStartY] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  
+  // Responsive tracking
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
 
+  // Reset scroll container position when filter changes (not needed for education, but tracks window resize)
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Vertical autoplay loop
+  useEffect(() => {
+    if (!isAutoPlayActive || isHovered || educationList.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % educationList.length);
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [isAutoPlayActive, isHovered]);
+
+  const handlePrev = () => {
+    if (educationList.length <= 1) return;
+    setActiveIndex((prev) => (prev - 1 + educationList.length) % educationList.length);
+  };
+
+  const handleNext = () => {
+    if (educationList.length <= 1) return;
+    setActiveIndex((prev) => (prev + 1) % educationList.length);
+  };
+
+  // Vertical Drag handlers for discrete swipe tracking
   const handleMouseDown = (e) => {
-    setIsDown(true);
-    setStartX(e.pageX - containerRef.current.offsetLeft);
-    setScrollLeftState(containerRef.current.scrollLeft);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDown(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDown(false);
+    if (e.target.closest('a') || e.target.closest('button')) return;
+    setDragStartY(e.pageY);
+    setIsDragging(true);
   };
 
   const handleMouseMove = (e) => {
-    if (!isDown) return;
-    e.preventDefault();
-    const x = e.pageX - containerRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5; // Drag sensitivity
-    containerRef.current.scrollLeft = scrollLeftState - walk;
-  };
+    if (!isDragging || dragStartY === null) return;
+    
+    const currentY = e.pageY;
+    const diffY = currentY - dragStartY;
+    const threshold = 60; // Pixel threshold to rotate card vertically
 
-  const handleScroll = () => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-    const maxScroll = container.scrollWidth - container.clientWidth;
-    if (maxScroll <= 0) {
-      setScrollProgress(0);
-      return;
+    if (diffY > threshold) {
+      handlePrev(); // Swipe down -> scrolls down (show previous)
+      setDragStartY(currentY); // reset base so drag can continue
+    } else if (diffY < -threshold) {
+      handleNext(); // Swipe up -> scrolls up (show next)
+      setDragStartY(currentY);
     }
-    setScrollProgress(container.scrollLeft / maxScroll);
   };
 
-  const scroll = (direction) => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-    const scrollAmount = 450; // Scroll distance per click
-    container.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth',
-    });
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setDragStartY(null);
+  };
+
+  // Vertical radius based on responsive screen width
+  const getVerticalRadius = () => {
+    if (windowWidth >= 768) return 150;
+    return 100; // Compact vertical radius for mobile screens
   };
 
   return (
@@ -67,96 +93,146 @@ const Education = () => {
             <p className="text-xs text-textMuted font-mono mt-1 uppercase">// ACADEMIC TIMELINE ROADMAP</p>
           </Reveal>
 
-          {/* Slider Buttons */}
+          {/* Slider Controls */}
           <Reveal delay={0.05}>
-            <div className="flex gap-2 font-mono text-[10px]">
+            <div className="flex items-center gap-3 font-mono text-[10px]">
+              {/* Play/Pause Toggle Indicator */}
               <button
-                onClick={() => scroll('left')}
-                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer"
+                onClick={() => setIsAutoPlayActive(!isAutoPlayActive)}
+                className={`flex items-center gap-2 px-3 py-1.5 border border-cardBorder bg-cardBg hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer`}
+                title={isAutoPlayActive ? "Click to Pause Auto-rotation" : "Click to Play Auto-rotation"}
               >
-                &lt;&lt; PREV
+                <span className={`w-1.5 h-1.5 rounded-full ${isAutoPlayActive ? 'bg-accentPurple shadow-glowPurple animate-pulse' : 'bg-red-500'}`} />
+                <span>{isAutoPlayActive ? "AUTO: PLAYING" : "AUTO: PAUSED"}</span>
+              </button>
+
+              <button
+                onClick={handlePrev}
+                disabled={educationList.length <= 1}
+                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary disabled:opacity-30 disabled:pointer-events-none transition-all duration-200 rounded-sm select-none cursor-pointer"
+              >
+                /\ UP
               </button>
               <button
-                onClick={() => scroll('right')}
-                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer"
+                onClick={handleNext}
+                disabled={educationList.length <= 1}
+                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary disabled:opacity-30 disabled:pointer-events-none transition-all duration-200 rounded-sm select-none cursor-pointer"
               >
-                NEXT &gt;&gt;
+                \/ DOWN
               </button>
             </div>
           </Reveal>
         </div>
 
-        {/* Roadmap Slider Container */}
-        <div className="relative w-full">
-          {/* Horizontal Line Connector */}
-          <div className="absolute top-[26px] left-8 right-8 h-[2px] bg-cardBorder z-0" />
+        {/* 3D Vertical Rotating Carousel Container */}
+        <div 
+          className="relative w-full h-[480px] md:h-[540px] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => { setIsHovered(false); handleMouseUp(); }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          style={{ perspective: '1200px' }}
+        >
+          {educationList.map((item, idx) => {
+            const totalCards = educationList.length;
+            let transformStyle = {};
 
-          {/* Scrollable track */}
-          <div
-            ref={containerRef}
-            onMouseDown={handleMouseDown}
-            onMouseLeave={handleMouseLeave}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onScroll={handleScroll}
-            className="flex flex-row gap-8 overflow-x-auto scrollbar-none py-4 cursor-grab active:cursor-grabbing snap-x snap-mandatory relative z-10 select-none"
-          >
-            {educationList.map((item, idx) => (
-              <div key={item.id} className="snap-start flex-shrink-0 w-[88vw] md:w-[480px] group">
-                {/* Node point aligned horizontally */}
-                <div className="flex items-center h-6 mb-6 pl-6 relative">
-                  <div className="w-3.5 h-3.5 bg-accentPurple rounded-full shadow-glowPurple border-2 border-bgDark group-hover:scale-110 transition-transform duration-300 relative z-10" />
-                </div>
+            if (totalCards === 1) {
+              transformStyle = {
+                transform: 'translate3d(0px, 0px, 0px) rotateX(0deg) scale(1)',
+                zIndex: 10,
+                opacity: 1,
+                pointerEvents: 'auto'
+              };
+            } else {
+              // Shortest distance wrapping
+              let diff = idx - activeIndex;
+              if (diff < -totalCards / 2) diff += totalCards;
+              if (diff > totalCards / 2) diff -= totalCards;
 
-                <Card className="space-y-6 hover:border-accentPurple/40 transition-colors">
-                  <div className="flex flex-wrap justify-between items-start gap-4">
-                    <div>
-                      <h3 className="text-lg md:text-xl font-bold text-textPrimary">{item.institution}</h3>
-                      <p className="text-xs font-mono text-accentCyan mt-1">{item.degree}</p>
+              const angle = (diff * 2 * Math.PI) / totalCards;
+              const radius = getVerticalRadius();
+
+              const ty = Math.sin(angle) * radius;
+              const tz = (Math.cos(angle) - 1) * radius;
+              // Tilt cards dynamically on X-axis as they rotate up/down
+              const rx = -angle * (180 / Math.PI) * 0.45;
+              const scale = 0.82 + 0.18 * Math.cos(angle);
+              const opacity = 0.18 + 0.82 * (Math.cos(angle) + 1) / 2;
+              const zIndex = Math.round((Math.cos(angle) + 1) * 100);
+              const pointerEvents = Math.cos(angle) > 0.82 ? 'auto' : 'none';
+
+              transformStyle = {
+                transform: `translate3d(0, ${ty}px, ${tz}px) rotateX(${rx}deg) scale(${scale})`,
+                zIndex: zIndex,
+                opacity: opacity,
+                pointerEvents: pointerEvents
+              };
+            }
+
+            return (
+              <div 
+                key={item.id} 
+                className="absolute w-[88vw] sm:w-[460px] md:w-[480px] lg:w-[500px] h-[320px] md:h-[350px] transition-all duration-700 ease-out"
+                style={{
+                  ...transformStyle,
+                  transformStyle: 'preserve-3d',
+                  backfaceVisibility: 'hidden',
+                }}
+              >
+                <Card className="space-y-4 hover:border-accentPurple/40 transition-colors h-full flex flex-col justify-between p-6">
+                  <div>
+                    <div className="flex flex-wrap justify-between items-start gap-4">
+                      <div>
+                        <h3 className="text-base md:text-lg font-bold text-textPrimary leading-snug">{item.institution}</h3>
+                        <p className="text-xs font-mono text-accentCyan mt-1">{item.degree}</p>
+                      </div>
+                      <span className="font-mono text-xs text-textMuted py-1 px-2.5 bg-cardBg border border-cardBorder rounded select-none shrink-0">
+                        {item.timeline}
+                      </span>
                     </div>
-                    <span className="font-mono text-xs text-textMuted py-1 px-2.5 bg-cardBg border border-cardBorder rounded select-none">
-                      {item.timeline}
-                    </span>
-                  </div>
 
-                  <div className="space-y-4">
-                    <div className="text-xs font-mono text-textMuted leading-relaxed border-l-2 border-accentCyan/30 pl-3">
-                      {item.details}
-                    </div>
+                    <div className="space-y-3 mt-3">
+                      <div className="text-xs font-mono text-textMuted leading-relaxed border-l-2 border-accentCyan/30 pl-3">
+                        {item.details}
+                      </div>
 
-                    <div>
-                      <h4 className="text-xs font-mono text-textPrimary uppercase tracking-widest mb-3">// Core Subjects</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {item.courses.map((course, idx) => (
-                          <Badge key={idx} name={course} />
-                        ))}
+                      <div>
+                        <div className="flex flex-wrap gap-1.5 max-h-[48px] overflow-hidden">
+                          {item.courses.map((course, idx) => (
+                            <Badge key={idx} name={course} className="text-[9px] py-0.5" />
+                          ))}
+                        </div>
                       </div>
                     </div>
+                  </div>
 
-                    <div className="border-t border-cardBorder pt-4">
-                      <h4 className="text-xs font-mono text-textPrimary uppercase tracking-widest mb-2">// Focus &amp; Approach</h4>
-                      <p className="text-sm text-textMuted leading-relaxed">
-                        {item.approach}
-                      </p>
-                    </div>
+                  <div className="border-t border-cardBorder pt-3">
+                    <h4 className="text-[9px] font-mono text-textPrimary uppercase tracking-widest mb-1">// Focus &amp; Approach</h4>
+                    <p className="text-xs text-textMuted leading-normal line-clamp-2">
+                      {item.approach}
+                    </p>
                   </div>
                 </Card>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        {/* Console-style Progress Tracker */}
-        <div className="flex items-center justify-between font-mono text-[9px] text-textMuted pt-4 max-w-sm mx-auto">
-          <span>[SYSTEM: ROADMAP_L]</span>
-          <div className="w-48 h-[2px] bg-cardBorder relative overflow-hidden rounded-full mx-4">
-            <div
-              className="absolute top-0 bottom-0 left-0 bg-accentPurple transition-transform duration-100 origin-left"
-              style={{ transform: `scaleX(${scrollProgress})`, width: '100%' }}
-            />
+        {/* Slide Indicator Dots */}
+        {educationList.length > 1 && (
+          <div className="flex justify-center items-center gap-2 pt-2">
+            {educationList.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveIndex(idx)}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === activeIndex ? 'bg-accentPurple w-4 shadow-glowPurple' : 'bg-cardBorder hover:bg-textMuted'}`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
           </div>
-          <span>[SYSTEM: ROADMAP_R]</span>
-        </div>
+        )}
 
       </div>
     </section>
