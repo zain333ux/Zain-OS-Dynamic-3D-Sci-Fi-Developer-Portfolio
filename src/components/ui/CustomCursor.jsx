@@ -1,0 +1,122 @@
+import React, { useState, useEffect } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+
+const CustomCursor = () => {
+  const shouldReduceMotion = useReducedMotion();
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(true);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    // Detect mobile touch devices to disable custom cursor
+    const checkDevice = () => {
+      setIsMobile(
+        window.innerWidth < 768 || 
+        ('ontouchstart' in window) || 
+        (navigator.maxTouchPoints > 0)
+      );
+    };
+    checkDevice();
+
+    const handleMouseMove = (e) => {
+      setPosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleMouseOver = (e) => {
+      const target = e.target;
+      const isInteractive = 
+        target.tagName === 'A' || 
+        target.tagName === 'BUTTON' || 
+        target.closest('[role="button"]') ||
+        target.closest('a') ||
+        target.closest('button');
+        
+      setIsHovered(!!isInteractive);
+    };
+
+    const handleScroll = () => {
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalScroll > 0) {
+        setScrollProgress(window.scrollY / totalScroll);
+      }
+    };
+
+    if (!isMobile && !shouldReduceMotion) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseover', handleMouseOver);
+      window.addEventListener('scroll', handleScroll);
+      handleScroll(); // Initial load check
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseover', handleMouseOver);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isMobile, shouldReduceMotion]);
+
+  if (isMobile || shouldReduceMotion) return null;
+
+  // Circumference calculation for radius r=19: C = 2 * PI * r = 119.38
+  const circumference = 119.38;
+  const strokeDashoffset = circumference * (1 - scrollProgress);
+
+  return (
+    <>
+      {/* Central Cursor Point */}
+      <div 
+        className="fixed w-1.5 h-1.5 bg-accentCyan rounded-full z-[10000] pointer-events-none -translate-x-1/2 -translate-y-1/2"
+        style={{ left: `${position.x}px`, top: `${position.y}px`, transition: 'transform 0.05s ease-out' }}
+      />
+      
+      {/* Outer Lagging Aura Ring with Circular Scroll Progress */}
+      <motion.div 
+        className="fixed rounded-full z-[9999] pointer-events-none -translate-x-1/2 -translate-y-1/2 flex items-center justify-center overflow-hidden"
+        animate={{
+          left: position.x,
+          top: position.y,
+          width: isHovered ? 40 : 24,
+          height: isHovered ? 40 : 24,
+          backgroundColor: isHovered ? 'rgba(6, 182, 212, 0.05)' : 'rgba(0,0,0,0)',
+        }}
+        transition={{
+          type: "spring",
+          damping: 30,
+          stiffness: 350,
+          mass: 0.15
+        }}
+      >
+        <svg className="w-full h-full rotate-[-90deg] scale-[1.05]" viewBox="0 0 44 44" aria-hidden="true">
+          {/* Background circle track */}
+          <circle 
+            cx="22" 
+            cy="22" 
+            r="19" 
+            stroke="rgba(255, 255, 255, 0.06)" 
+            strokeWidth="1.5" 
+            fill="none" 
+          />
+          {/* Progress circle outline */}
+          <motion.circle 
+            cx="22" 
+            cy="22" 
+            r="19" 
+            stroke={isHovered ? "#06B6D4" : "#7C3AED"} 
+            strokeWidth="2.2" 
+            fill="none"
+            strokeDasharray={circumference}
+            animate={{
+              strokeDashoffset: strokeDashoffset,
+              stroke: isHovered ? "#06B6D4" : "#7C3AED",
+              filter: isHovered ? 'drop-shadow(0 0 4px rgba(6, 182, 212, 0.6))' : 'none'
+            }}
+            transition={{ duration: 0.05 }}
+          />
+        </svg>
+      </motion.div>
+    </>
+  );
+};
+
+export default CustomCursor;
