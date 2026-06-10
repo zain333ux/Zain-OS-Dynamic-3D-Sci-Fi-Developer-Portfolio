@@ -56,6 +56,7 @@ export const playClick = () => {
 
   osc.connect(gain);
   gain.connect(masterVolume);
+  masterVolume.connect(audioCtx.destination);
 
   osc.start(time);
   osc.stop(time + 0.045);
@@ -86,6 +87,7 @@ export const playBootHum = () => {
   bootHumOsc.connect(filter);
   filter.connect(bootHumGain);
   bootHumGain.connect(masterVolume);
+  masterVolume.connect(audioCtx.destination);
 
   bootHumOsc.start(time);
 };
@@ -132,6 +134,7 @@ export const playHoverSound = () => {
 
   osc.connect(gain);
   gain.connect(masterVolume);
+  masterVolume.connect(audioCtx.destination);
 
   osc.start(time);
   osc.stop(time + 0.08);
@@ -155,6 +158,7 @@ export const playScrollTick = () => {
 
   osc.connect(gain);
   gain.connect(masterVolume);
+  masterVolume.connect(audioCtx.destination);
 
   osc.start(time);
   osc.stop(time + 0.015);
