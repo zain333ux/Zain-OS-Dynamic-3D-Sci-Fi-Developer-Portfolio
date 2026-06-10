@@ -20,6 +20,7 @@ import SpotlightAura from './components/ui/SpotlightAura';
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { playClick, playHoverSound, playScrollTick } from './utils/audio';
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -43,6 +44,59 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Global Ambient SFX Event Listeners
+  useEffect(() => {
+    if (!isBooted) return;
+
+    // 1. Play soft beep on hovering over interactive elements
+    const handleMouseOver = (e) => {
+      const target = e.target.closest('a, button, [role="button"], .cursor-pointer, input, select');
+      if (target) {
+        if (!target.dataset.audioHovered) {
+          playHoverSound();
+          target.dataset.audioHovered = 'true';
+        }
+      }
+    };
+
+    const handleMouseOut = (e) => {
+      const target = e.target.closest('a, button, [role="button"], .cursor-pointer, input, select');
+      if (target) {
+        delete target.dataset.audioHovered;
+      }
+    };
+
+    // 2. Play tactile typewriter keyclick on click
+    const handleMouseDown = (e) => {
+      const target = e.target.closest('a, button, [role="button"], .cursor-pointer');
+      if (target) {
+        playClick();
+      }
+    };
+
+    // 3. Play click sound when typing inside inputs (like the CLI console)
+    const handleKeyDown = (e) => {
+      const target = e.target.closest('input, textarea');
+      if (target) {
+        if (e.key.length === 1 || e.key === 'Enter' || e.key === 'Backspace') {
+          playClick();
+        }
+      }
+    };
+
+    window.addEventListener('mouseover', handleMouseOver, { passive: true });
+    window.addEventListener('mouseout', handleMouseOut, { passive: true });
+    window.addEventListener('mousedown', handleMouseDown, { passive: true });
+    window.addEventListener('keydown', handleKeyDown, { passive: true });
+
+    return () => {
+      window.removeEventListener('mouseover', handleMouseOver);
+      window.removeEventListener('mouseout', handleMouseOut);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isBooted]);
+
   useEffect(() => {
     // Skip smooth scrolling if prefers-reduced-motion is active or not booted yet
     if (shouldReduceMotion || !isBooted) return;
@@ -55,7 +109,17 @@ function App() {
     });
     window.lenis = lenis;
 
-    lenis.on('scroll', ScrollTrigger.update);
+    let lastScrollTime = 0;
+    lenis.on('scroll', (e) => {
+      ScrollTrigger.update();
+
+      // Hook scroll tick sound (rate limit to once every 200ms to avoid audio spam)
+      const now = Date.now();
+      if (now - lastScrollTime > 200 && Math.abs(e.velocity) > 0.1) {
+        playScrollTick();
+        lastScrollTime = now;
+      }
+    });
 
     const updateTicker = (time) => {
       lenis.raf(time * 1000);
