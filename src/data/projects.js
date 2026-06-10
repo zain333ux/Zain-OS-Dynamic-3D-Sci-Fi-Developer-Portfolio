@@ -15,9 +15,9 @@ export const projects = [
     whatIBuilt: "A Python preprocessing and analysis script that calculates cosine similarity between commodity price change vectors and builds network graphs.",
     whatILearned: "How to handle real-world economic datasets, construct graphs using NetworkX, and apply centrality measures (degree, closeness, and betweenness).",
     links: {
-      github: { type: "coming-soon", label: "GitHub Coming Soon" },
-      report: { type: "coming-soon", label: "Report Coming Soon" },
-      notebook: { type: "coming-soon", label: "Notebook Coming Soon" }
+      github: { type: "active", url: "https://github.com/zain333ux/Commodity-Price-Network-Analysis-A-Graph-Theoretic-Study-of-Pakistan-s-CPI-Data-2023-2026-.git" },
+      demo: { type: "active", url: "https://youtu.be/oSyzBJYUyX4?si=PLs-qvFq3l8KhTuE" },
+      report: { type: "active", url: "https://www.linkedin.com/posts/zain-ul-abideen-392623353_discrete-structures-project-activity-7469695081013403648-UgPC?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFgw8F4BwPgTeWLJ4dE-iEJpXOsF_IcWf6Y" }
     }
   },
   {
@@ -36,9 +36,8 @@ export const projects = [
     whatIBuilt: "A modular C++ game structure managing character states, enemy behavior, weapon fires, and bounding-box collision grids.",
     whatILearned: "How to design scalable class hierarchies, handle polymorphism and dynamic binding, and separate system responsibilities.",
     links: {
-      github: { type: "coming-soon", label: "GitHub Coming Soon" },
-      demo: { type: "coming-soon", label: "Demo Coming Soon" },
-      report: { type: "coming-soon", label: "Report Coming Soon" }
+      github: { type: "active", url: "https://github.com/zain333ux/Metal-Slug.git" },
+      demo: { type: "active", url: "https://www.linkedin.com/posts/zain-ul-abideen-392623353_oop-cpp-sfml-activity-7468751086338863104-h78d?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFgw8F4BwPgTeWLJ4dE-iEJpXOsF_IcWf6Y" }
     }
   },
   {
@@ -57,9 +56,8 @@ export const projects = [
     whatIBuilt: "A multivariable linear model that parses academic marks, calculates gradient steps, and updates weights to minimize prediction errors.",
     whatILearned: "How multivariable calculus drives model optimization, how learning rates impact convergence stability, and how to write vectorized code.",
     links: {
-      github: { type: "coming-soon", label: "GitHub Coming Soon" },
-      notebook: { type: "coming-soon", label: "Notebook Coming Soon" },
-      report: { type: "coming-soon", label: "Report Coming Soon" }
+      github: { type: "active", url: "https://github.com/zain333ux/Student-Performance-Prediction-using-Gradient-Descent.git" },
+      report: { type: "active", url: "https://www.linkedin.com/posts/muhammad-khubaib-khalil-7405b7395_multivariable-calculus-project-ugcPost-7469682558486818817-r-A0?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFgw8F4BwPgTeWLJ4dE-iEJpXOsF_IcWf6Y" }
     }
   },
   {
@@ -78,8 +76,8 @@ export const projects = [
     whatIBuilt: "A classic arcade game featuring basic player movement, vacuum logic, projectile physics, score updates, and file-based state saves.",
     whatILearned: "How to implement keyboard input loops, handle spatial collisions, manage game assets, write data to files, and systematically debug logical errors.",
     links: {
-      github: { type: "coming-soon", label: "GitHub Coming Soon" },
-      demo: { type: "coming-soon", label: "Demo Coming Soon" }
+      github: { type: "active", url: "https://github.com/zain333ux/Tumble-Pop-Inspired-2D-Platformer-in-SFML.git" },
+      demo: { type: "active", url: "https://www.linkedin.com/posts/zain-ul-abideen-392623353_firstsemester-sfml-gamedevelopment-activity-7417497463818928128-J_vJ?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFgw8F4BwPgTeWLJ4dE-iEJpXOsF_IcWf6Y" }
     }
   },
   {
@@ -97,10 +95,6 @@ export const projects = [
     overview: "A systems optimization study applying multivariable calculus to minimize latency in a linear network topology.",
     whatIBuilt: "An analytical optimization formula verified by a Python simulator that models routing delays.",
     whatILearned: "How to apply derivative optimizations to engineering problems and verify mathematical proofs through code.",
-    links: {
-      github: { type: "coming-soon", label: "GitHub Coming Soon" },
-      report: { type: "coming-soon", label: "Report Coming Soon" },
-      notebook: { type: "coming-soon", label: "Notebook Coming Soon" }
-    }
+    links: {}
   }
 ];
