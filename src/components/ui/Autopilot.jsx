@@ -11,58 +11,70 @@ const SECTIONS = [
   { id: '#achievements', name: 'SYSTEM_CHECKPOINTS (ACHIEVEMENTS)' },
 ];
 
-const DWELL_DURATION = 5000; // 5 seconds per section
+const getSectionDwell = (sectionId) => {
+  if (sectionId === '#education') return 9000; // 3 academic milestones * 3s each
+  if (sectionId === '#projects') return 12000; // 4 active projects * 3s each
+  return 5000; // 5s standard dwell duration
+};
 
 const Autopilot = () => {
   const [isActive, setIsActive] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(DWELL_DURATION);
+  const [timeLeft, setTimeLeft] = useState(5000);
+  const [currentDwell, setCurrentDwell] = useState(5000);
   
   const widgetRef = useRef(null);
-  const timerRef = useRef(null);
   const tickRef = useRef(null);
 
   // Toggle autopilot
   const handleToggle = () => {
-    setIsActive((prev) => !prev);
+    setIsActive((prev) => {
+      const nextActive = !prev;
+      if (nextActive) {
+        setCurrentIndex(0);
+      }
+      return nextActive;
+    });
   };
 
-  // Autopilot loop and scrolling logic
+  // Scroll and dwell setup on active index change
+  useEffect(() => {
+    if (!isActive) return;
+
+    // Scroll to the current target section
+    scrollToSection(currentIndex);
+    
+    // Get and apply the dynamic dwell duration for the section
+    const targetId = SECTIONS[currentIndex].id;
+    const dwell = getSectionDwell(targetId);
+    setCurrentDwell(dwell);
+    setTimeLeft(dwell);
+
+  }, [isActive, currentIndex]);
+
+  // Unified tick loop
   useEffect(() => {
     if (!isActive) {
-      // Clean up timers when inactive
-      if (timerRef.current) clearInterval(timerRef.current);
       if (tickRef.current) clearInterval(tickRef.current);
       return;
     }
 
-    // Scroll to the current target immediately when activated
-    scrollToSection(currentIndex);
-    setTimeLeft(DWELL_DURATION);
-
-    // Dwell timer: trigger scroll to next section
-    timerRef.current = setInterval(() => {
-      setCurrentIndex((prev) => {
-        const nextIdx = (prev + 1) % SECTIONS.length;
-        scrollToSection(nextIdx);
-        return nextIdx;
-      });
-      setTimeLeft(DWELL_DURATION);
-    }, DWELL_DURATION);
-
-    // Ticking timer: update progress bar every 100ms
     tickRef.current = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 100) return DWELL_DURATION;
-        return prev - 100;
+        const nextVal = prev - 100;
+        if (nextVal <= 0) {
+          // Time is up! Move to the next section
+          setCurrentIndex((prevIdx) => (prevIdx + 1) % SECTIONS.length);
+          return 0;
+        }
+        return nextVal;
       });
     }, 100);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
       if (tickRef.current) clearInterval(tickRef.current);
     };
-  }, [isActive, currentIndex]);
+  }, [isActive]);
 
   // Handle auto-interruption by user actions
   useEffect(() => {
@@ -111,7 +123,7 @@ const Autopilot = () => {
   // Calculate terminal-style visual loading bar: [████░░░░░]
   const getProgressBarString = () => {
     const barLength = 10;
-    const ratio = Math.max(0, Math.min(1, timeLeft / DWELL_DURATION));
+    const ratio = Math.max(0, Math.min(1, timeLeft / currentDwell));
     const activeChars = Math.round(ratio * barLength);
     return '█'.repeat(activeChars) + '░'.repeat(barLength - activeChars);
   };

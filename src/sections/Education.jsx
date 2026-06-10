@@ -7,6 +7,8 @@ import { educationList } from '../data/education';
 
 const Education = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const sectionRef = useRef(null);
+  const [isIntersecting, setIsIntersecting] = useState(false);
   
   // Auto-play state
   const [isAutoPlayActive, setIsAutoPlayActive] = useState(true);
@@ -19,6 +21,27 @@ const Education = () => {
   // Responsive tracking
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
 
+  // Viewport detection via IntersectionObserver
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsIntersecting(entry.isIntersecting);
+      if (entry.isIntersecting) {
+        // Reset to first card (BSCS) when user scrolls into view
+        setActiveIndex(0);
+      }
+    }, {
+      threshold: 0.15, // trigger when 15% visible
+    });
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   // Reset scroll container position when filter changes (not needed for education, but tracks window resize)
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -28,14 +51,14 @@ const Education = () => {
 
   // Vertical autoplay loop
   useEffect(() => {
-    if (!isAutoPlayActive || isHovered || educationList.length <= 1) return;
+    if (!isAutoPlayActive || isHovered || !isIntersecting || educationList.length <= 1) return;
 
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % educationList.length);
     }, 3000);
 
     return () => clearInterval(timer);
-  }, [isAutoPlayActive, isHovered]);
+  }, [isAutoPlayActive, isHovered, isIntersecting]);
 
   const handlePrev = () => {
     if (educationList.length <= 1) return;
@@ -82,7 +105,11 @@ const Education = () => {
   };
 
   return (
-    <section id="education" className="section-pad relative overflow-hidden border-t border-cardBorder">
+    <section 
+      ref={sectionRef}
+      id="education" 
+      className="section-pad relative overflow-hidden border-t border-cardBorder"
+    >
       <CodeBackdrop type="education" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8">
         

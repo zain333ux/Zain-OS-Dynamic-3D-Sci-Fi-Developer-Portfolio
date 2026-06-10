@@ -18,6 +18,8 @@ const filters = [
 const Projects = () => {
   const [activeFilter, setActiveFilter] = useState("All");
   const [activeIndex, setActiveIndex] = useState(0);
+  const sectionRef = useRef(null);
+  const [isIntersecting, setIsIntersecting] = useState(false);
   
   // Auto-play state
   const [isAutoPlayActive, setIsAutoPlayActive] = useState(true);
@@ -29,6 +31,27 @@ const Projects = () => {
   
   // Responsive radius tracking
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  // Viewport detection via IntersectionObserver
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsIntersecting(entry.isIntersecting);
+      if (entry.isIntersecting) {
+        // Reset to first project when user scrolls into view
+        setActiveIndex(0);
+      }
+    }, {
+      threshold: 0.15, // trigger when 15% visible
+    });
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   // Filter projects by checking the categories array
   const filteredProjects = activeFilter === "All"
@@ -49,14 +72,14 @@ const Projects = () => {
 
   // Autoplay loop timer
   useEffect(() => {
-    if (!isAutoPlayActive || isHovered || filteredProjects.length <= 1) return;
+    if (!isAutoPlayActive || isHovered || !isIntersecting || filteredProjects.length <= 1) return;
 
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % filteredProjects.length);
     }, 3000);
 
     return () => clearInterval(timer);
-  }, [isAutoPlayActive, isHovered, filteredProjects.length]);
+  }, [isAutoPlayActive, isHovered, isIntersecting, filteredProjects.length]);
 
   const handlePrev = () => {
     if (filteredProjects.length <= 1) return;
@@ -145,7 +168,11 @@ const Projects = () => {
   };
 
   return (
-    <section id="projects" className="section-pad relative overflow-hidden border-t border-cardBorder">
+    <section 
+      ref={sectionRef}
+      id="projects" 
+      className="section-pad relative overflow-hidden border-t border-cardBorder"
+    >
       <CodeBackdrop type="projects" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8">
         
