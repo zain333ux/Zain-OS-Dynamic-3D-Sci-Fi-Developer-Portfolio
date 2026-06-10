@@ -85,8 +85,12 @@ const LatticeMesh = ({ shouldReduceMotion }) => {
       groupRef.current.rotation.x = mouse.y * 0.06;
       groupRef.current.rotation.y += mouse.x * 0.06;
 
-      // Dolly zoom effect: Camera moves Z-depth based on scroll progression
+      // Dolly zoom + camera parallax offsets: Camera shifts positions based on scroll progression
       const targetZ = 4.6 + Math.sin(scrollProgress * Math.PI) * 0.9;
+      const targetY = -scrollProgress * 2.2;
+      const targetX = Math.cos(scrollProgress * Math.PI) * 0.4;
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.08);
+      camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.08);
       camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.08);
       camera.rotation.z = THREE.MathUtils.lerp(camera.rotation.z, scrollProgress * 0.12, 0.08);
     }

@@ -76,12 +76,26 @@ const Card = ({
     >
       {/* CSS-Variables Driven Liquid Sheen Glow Overlay */}
       {!shouldReduceMotion && (
-        <div 
-          className="absolute inset-0 pointer-events-none rounded-[inherit] transition-opacity duration-300 opacity-[var(--sheen-opacity,0)] z-[1]"
-          style={{
-            background: `radial-gradient(350px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(6, 182, 212, 0.08) 0%, rgba(124, 58, 237, 0.03) 60%, transparent 100%)`,
-          }}
-        />
+        <>
+          <div 
+            className="absolute inset-0 pointer-events-none rounded-[inherit] transition-opacity duration-300 opacity-[var(--sheen-opacity,0)] z-[1]"
+            style={{
+              background: `radial-gradient(350px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(156, 176, 128, 0.08) 0%, rgba(97, 135, 100, 0.03) 60%, transparent 100%)`,
+            }}
+          />
+          {/* Self-drawing SVG hover border */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none rounded-[inherit] z-20" fill="none">
+            <rect 
+              x="0" 
+              y="0" 
+              width="100%" 
+              height="100%" 
+              rx="6" 
+              pathLength="100"
+              className="stroke-card-svg-border"
+            />
+          </svg>
+        </>
       )}
       
       {/* Content wrapper to float above sheen */}

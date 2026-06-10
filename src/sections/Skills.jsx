@@ -4,8 +4,84 @@ import Badge from '../components/ui/Badge';
 import Reveal from '../components/ui/Reveal';
 import CodeBackdrop from '../components/ui/CodeBackdrop';
 import { skills } from '../data/skills';
+import { gsap } from 'gsap';
 
 const Skills = () => {
+  const parallaxRef = useRef(null);
+  const parallaxRingRef = useRef(null);
+  const ringDialRef = useRef(null);
+  const ringDialInnerRef = useRef(null);
+
+  useEffect(() => {
+    const el = parallaxRef.current;
+    if (el) {
+      gsap.fromTo(el,
+        { y: -60, rotation: 0 },
+        {
+          y: 80,
+          rotation: 10,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '#stack',
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    const ringEl = parallaxRingRef.current;
+    if (ringEl) {
+      gsap.fromTo(ringEl,
+        { y: 80 },
+        {
+          y: -100,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '#stack',
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    const ringDial = ringDialRef.current;
+    if (ringDial) {
+      gsap.fromTo(ringDial,
+        { strokeDashoffset: 283 },
+        {
+          strokeDashoffset: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '#stack',
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          }
+        }
+      );
+    }
+
+    const ringDialInner = ringDialInnerRef.current;
+    if (ringDialInner) {
+      gsap.fromTo(ringDialInner,
+        { strokeDashoffset: 0 },
+        {
+          strokeDashoffset: 238,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '#stack',
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          }
+        }
+      );
+    }
+  }, []);
   const containerRef = useRef(null);
   const [isDown, setIsDown] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -58,6 +134,61 @@ const Skills = () => {
   return (
     <section id="stack" className="section-pad relative overflow-hidden border-t border-cardBorder">
       <CodeBackdrop type="skills" />
+      
+      {/* Parallax Background HUD Element 1 */}
+      <div 
+        ref={parallaxRef} 
+        className="absolute w-[240px] h-[360px] border border-dashed border-cardBorder/35 top-[20%] left-[-60px] opacity-[0.035] pointer-events-none select-none z-0 hidden md:block"
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        <div className="absolute top-0 bottom-0 left-12 w-[1px] bg-cardBorder/25" />
+        <div className="absolute top-0 bottom-0 left-24 w-[1px] bg-cardBorder/25 border-dashed" />
+        <div className="absolute top-0 bottom-0 left-36 w-[1px] bg-cardBorder/25" />
+        <div className="absolute top-12 left-0 right-0 h-[1px] bg-cardBorder/25" />
+        <div className="absolute top-24 left-0 right-0 h-[1px] bg-cardBorder/25 border-dashed" />
+        <div className="absolute top-36 left-0 right-0 h-[1px] bg-cardBorder/25" />
+        <div className="p-4 font-mono text-[8px] text-textMuted tracking-widest space-y-2 uppercase">
+          <div>LOC: 0x2A7B</div>
+          <div>CORE_SYS: RUNNING</div>
+          <div>SEC: STABLE</div>
+        </div>
+      </div>
+
+      {/* Parallax Background HUD Element 2: Rotating Cyber Ring */}
+      <div 
+        ref={parallaxRingRef} 
+        className="absolute w-[350px] h-[350px] bottom-[10%] right-[-120px] opacity-[0.06] pointer-events-none select-none z-0 hidden md:block"
+      >
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none">
+          <circle 
+            cx="50" 
+            cy="50" 
+            r="45" 
+            stroke="url(#skills-dial-gradient)" 
+            strokeWidth="0.8" 
+            strokeDasharray="283" 
+            ref={ringDialRef}
+            className="transform origin-center animate-[spin_40s_linear_infinite]"
+          />
+          <circle 
+            cx="50" 
+            cy="50" 
+            r="38" 
+            stroke="#273338" 
+            strokeWidth="0.5" 
+            strokeDasharray="238" 
+            ref={ringDialInnerRef}
+            className="transform origin-center animate-[spin_20s_linear_infinite_reverse]"
+          />
+          <defs>
+            <linearGradient id="skills-dial-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#9CB080" />
+              <stop offset="100%" stopColor="#618764" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8">
         
         {/* Section Header */}

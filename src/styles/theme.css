@@ -67,3 +67,18 @@
   80% { transform:translate(3%, 35%) }
   90% { transform:translate(-10%, 10%) }
 }
+
+/* Self-drawing SVG borders on Card hover */
+.stroke-card-svg-border {
+  stroke: transparent;
+  stroke-width: 1.5px;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), stroke 0.3s;
+}
+
+.glass-card:hover .stroke-card-svg-border {
+  stroke: #9CB080; /* Sage Green */
+  stroke-dashoffset: 0;
+}
+
