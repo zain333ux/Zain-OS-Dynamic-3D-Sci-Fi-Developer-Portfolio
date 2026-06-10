@@ -54,8 +54,12 @@ const Hero = () => {
             <a href="#projects">
               <Button variant="primary">View Projects</Button>
             </a>
-            <Button variant="placeholder" title="My resume is being finalized and will be uploaded soon.">
-              Resume Coming Soon
+            <Button 
+              variant="secondary" 
+              href="/Zain_Ul_Abideen_CV.docx" 
+              download="Zain_Ul_Abideen_CV.docx"
+            >
+              Download Resume
             </Button>
             <a href="#contact">
               <Button variant="secondary">Contact Me</Button>
