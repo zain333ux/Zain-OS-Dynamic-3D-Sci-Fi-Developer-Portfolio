@@ -158,10 +158,10 @@ const Education = () => {
               const tz = (Math.cos(angle) - 1) * radius;
               // Tilt cards dynamically on X-axis as they rotate up/down
               const rx = -angle * (180 / Math.PI) * 0.45;
-              const scale = 0.82 + 0.18 * Math.cos(angle);
-              const opacity = 0.18 + 0.82 * (Math.cos(angle) + 1) / 2;
-              const zIndex = Math.round((Math.cos(angle) + 1) * 100);
-              const pointerEvents = Math.cos(angle) > 0.82 ? 'auto' : 'none';
+              const scale = idx === activeIndex ? 1 : 0.85;
+              const opacity = idx === activeIndex ? 1 : 0;
+              const zIndex = idx === activeIndex ? 100 : 10;
+              const pointerEvents = idx === activeIndex ? 'auto' : 'none';
 
               transformStyle = {
                 transform: `translate3d(0, ${ty}px, ${tz}px) rotateX(${rx}deg) scale(${scale})`,
