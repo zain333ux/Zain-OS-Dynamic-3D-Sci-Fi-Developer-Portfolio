@@ -27,7 +27,7 @@ const Footer = () => {
             Let's Connect
           </h2>
           <p className="text-sm md:text-base text-textMuted leading-relaxed max-w-xl mx-auto">
-            {contact.tagline} Reach out to discuss software engineering, machine learning pipelines, or AI integrations.
+            {contact.tagline}
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">

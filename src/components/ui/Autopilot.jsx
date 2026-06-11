@@ -104,19 +104,38 @@ const Autopilot = () => {
 
   const scrollToSection = (index) => {
     const targetId = SECTIONS[index].id;
+    const element = document.querySelector(targetId);
+    if (!element) return;
+
+    let scrollTarget = element;
+    let customOffset = -40; // Default header offset
+
     if (window.lenis) {
-      // Smooth scroll using global Lenis instance
-      window.lenis.scrollTo(targetId, {
-        duration: 1.8,
-        offset: -40,
+      // Find the carousel container (the "fixed frame") and center it vertically
+      if (targetId === '#projects' || targetId === '#education' || targetId === '#stack') {
+        const carousel = element.querySelector('.cursor-grab');
+        if (carousel) {
+          scrollTarget = carousel;
+          // Calculate offset to center the container center with viewport center
+          customOffset = -window.innerHeight / 2 + carousel.offsetHeight / 2;
+        }
+      }
+
+      window.lenis.scrollTo(scrollTarget, {
+        duration: 1.0,
+        offset: customOffset,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // smooth exponential out
       });
     } else {
       // Native fallback
-      const element = document.querySelector(targetId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+      if (targetId === '#projects' || targetId === '#education' || targetId === '#stack') {
+        const carousel = element.querySelector('.cursor-grab');
+        if (carousel) {
+          carousel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
       }
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 

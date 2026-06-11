@@ -15,12 +15,19 @@ import Autopilot from './components/ui/Autopilot';
 import CustomCursor from './components/ui/CustomCursor';
 import Preloader from './components/ui/Preloader';
 import SpotlightAura from './components/ui/SpotlightAura';
+import MatrixRain from './components/ui/MatrixRain';
+import LiveTerminal from './components/ui/LiveTerminal';
+import CommandPalette from './components/ui/CommandPalette';
+import HudOverlay from './components/ui/HudOverlay';
+import NebulaBackground from './components/ui/NebulaBackground';
+import AiChatbot from './components/ui/AiChatbot';
 
 // Import Lenis smooth scroll and GSAP
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { playClick, playHoverSound, playScrollTick } from './utils/audio';
+import { playClick, playHoverSound, startScrollHum } from './utils/audio';
+import useScrollGradient from './utils/useScrollGradient';
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -34,6 +41,19 @@ function App() {
   const [isBooted, setIsBooted] = useState(() => {
     return sessionStorage.getItem('portfolio-booted') === 'true';
   });
+  const [showMatrix, setShowMatrix] = useState(false);
+  const [showPalette, setShowPalette] = useState(false);
+
+  // Dynamic scroll-based gradient color system
+  useScrollGradient();
+
+  // Reset scroll to top on first load & disable browser auto-restoration
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -52,6 +72,9 @@ function App() {
     const handleMouseOver = (e) => {
       const target = e.target.closest('a, button, [role="button"], .cursor-pointer, input, select');
       if (target) {
+        if (target.classList.contains('glass-card')) {
+          return;
+        }
         if (!target.dataset.audioHovered) {
           playHoverSound();
           target.dataset.audioHovered = 'true';
@@ -62,6 +85,9 @@ function App() {
     const handleMouseOut = (e) => {
       const target = e.target.closest('a, button, [role="button"], .cursor-pointer, input, select');
       if (target) {
+        if (target.classList.contains('glass-card')) {
+          return;
+        }
         delete target.dataset.audioHovered;
       }
     };
@@ -70,6 +96,9 @@ function App() {
     const handleMouseDown = (e) => {
       const target = e.target.closest('a, button, [role="button"], .cursor-pointer');
       if (target) {
+        if (target.classList.contains('glass-card')) {
+          return;
+        }
         playClick();
       }
     };
@@ -97,9 +126,60 @@ function App() {
     };
   }, [isBooted]);
 
+  // Easter Egg Event Listeners
+  useEffect(() => {
+    if (!isBooted) return;
+
+    const handleMatrixEgg = () => {
+      setShowMatrix(true);
+    };
+
+    const handleGlitchEgg = () => {
+      document.body.classList.add('glitch-active');
+      setTimeout(() => {
+        document.body.classList.remove('glitch-active');
+      }, 3000);
+    };
+
+    window.addEventListener('easter-egg-matrix', handleMatrixEgg);
+    window.addEventListener('easter-egg-glitch', handleGlitchEgg);
+
+    return () => {
+      window.removeEventListener('easter-egg-matrix', handleMatrixEgg);
+      window.removeEventListener('easter-egg-glitch', handleGlitchEgg);
+    };
+  }, [isBooted]);
+
+  // Command Palette: Ctrl+K shortcut + custom event from Navbar badge
+  useEffect(() => {
+    if (!isBooted) return;
+
+    const handleCtrlK = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowPalette(prev => !prev);
+      }
+    };
+
+    const handleOpenPalette = () => {
+      setShowPalette(true);
+    };
+
+    window.addEventListener('keydown', handleCtrlK);
+    window.addEventListener('open-command-palette', handleOpenPalette);
+
+    return () => {
+      window.removeEventListener('keydown', handleCtrlK);
+      window.removeEventListener('open-command-palette', handleOpenPalette);
+    };
+  }, [isBooted]);
+
   useEffect(() => {
     // Skip smooth scrolling if prefers-reduced-motion is active or not booted yet
     if (shouldReduceMotion || !isBooted) return;
+
+    // Force scroll to top before Lenis initializes
+    window.scrollTo(0, 0);
 
     const lenis = new Lenis({
       lerp: 0.08,
@@ -109,16 +189,14 @@ function App() {
     });
     window.lenis = lenis;
 
-    let lastScrollTime = 0;
+    // Immediately reset Lenis scroll position to top
+    lenis.scrollTo(0, { immediate: true });
+
     lenis.on('scroll', (e) => {
       ScrollTrigger.update();
 
-      // Hook scroll tick sound (rate limit to once every 200ms to avoid audio spam)
-      const now = Date.now();
-      if (now - lastScrollTime > 200 && Math.abs(e.velocity) > 0.1) {
-        playScrollTick();
-        lastScrollTime = now;
-      }
+      // Hook scroll telemetry hum
+      startScrollHum(e.velocity);
     });
 
     const updateTicker = (time) => {
@@ -184,6 +262,18 @@ function App() {
       {!shouldReduceMotion && <div id="film-grain" aria-hidden="true" />}
       {!isBooted && <Preloader onComplete={() => setIsBooted(true)} />}
 
+      {/* Easter Egg: Matrix Rain Overlay */}
+      {showMatrix && <MatrixRain onDismiss={() => setShowMatrix(false)} />}
+
+      {/* Command Palette Overlay (Ctrl+K) */}
+      <CommandPalette isOpen={showPalette} onClose={() => setShowPalette(false)} />
+
+      {/* Nebula: Animated cosmic gradient at z-index 0 (deepest layer) */}
+      {isBooted && !shouldReduceMotion && <NebulaBackground />}
+
+      {/* Live IDE Terminal Background — persistent typing animation at z-index 1 */}
+      {isBooted && !shouldReduceMotion && <LiveTerminal />}
+
       {/* Floating dynamic back-light spotlight aura */}
       {isBooted && <SpotlightAura shouldReduceMotion={shouldReduceMotion} />}
 
@@ -199,6 +289,9 @@ function App() {
 
       {/* Navigation Menu Header */}
       {isBooted && <Navbar />}
+
+      {/* Floating Sci-Fi HUD Overlay (desktop only, pointer-events: none) */}
+      {isBooted && <HudOverlay />}
       
       {/* Content Layout Sections */}
       {isBooted && (
@@ -217,6 +310,7 @@ function App() {
       {/* Floating Action Elements */}
       {isBooted && <BackToTop />}
       {isBooted && <Autopilot />}
+      {isBooted && <AiChatbot />}
 
       {/* Terminal Contact Footer */}
       {isBooted && <Footer />}

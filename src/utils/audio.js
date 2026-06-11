@@ -163,3 +163,164 @@ export const playScrollTick = () => {
   osc.start(time);
   osc.stop(time + 0.015);
 };
+
+// State for dynamic scroll hum (Bandpass White Noise Wind)
+let dynamicScrollHumSource = null;
+let dynamicScrollHumFilter = null;
+let dynamicScrollHumGain = null;
+let dynamicScrollHumTimeout = null;
+let scrollStartTimestamp = 0;
+let noiseBuffer = null;
+
+const getNoiseBuffer = () => {
+  if (!audioCtx) return null;
+  if (noiseBuffer) return noiseBuffer;
+  const bufferSize = audioCtx.sampleRate * 2; // 2 seconds of noise
+  noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  return noiseBuffer;
+};
+
+// 1. Power-On Toggle [AUDIO: ON] (rising chime)
+export const playPowerOnChirp = () => {
+  initAudio();
+  if (!audioCtx || getAudioEnabled() === false) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const time = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, time);
+  osc.frequency.exponentialRampToValueAtTime(1800, time + 0.2);
+
+  gain.gain.setValueAtTime(0.001, time);
+  gain.gain.linearRampToValueAtTime(0.12, time + 0.04);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.2);
+
+  osc.connect(gain);
+  gain.connect(masterVolume);
+  masterVolume.connect(audioCtx.destination);
+
+  osc.start(time);
+  osc.stop(time + 0.21);
+};
+
+// 2. Data Sweep Swoosh for menu transitions (filtered white noise)
+export const playDataSweepSwoosh = () => {
+  initAudio();
+  if (!audioCtx || getAudioEnabled() === false) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const time = audioCtx.currentTime;
+  const duration = 0.45; // 450ms
+  const bufferSize = audioCtx.sampleRate * duration;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  // Populate white noise buffer
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+
+  const noiseNode = audioCtx.createBufferSource();
+  noiseNode.buffer = buffer;
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.Q.setValueAtTime(3.5, time);
+  filter.frequency.setValueAtTime(3200, time);
+  filter.frequency.exponentialRampToValueAtTime(550, time + duration);
+
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.001, time);
+  gain.gain.linearRampToValueAtTime(0.05, time + 0.05); // volume sweep
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+  noiseNode.connect(filter);
+  filter.connect(gain);
+  gain.connect(masterVolume);
+  masterVolume.connect(audioCtx.destination);
+
+  noiseNode.start(time);
+  noiseNode.stop(time + duration);
+};
+
+// 3. Card Interaction Sound 1: Hover relay tick
+export const playMutedRelayTick = () => {
+  initAudio();
+  if (!audioCtx || getAudioEnabled() === false) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const time = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(2200, time); // High relay switch tick
+
+  gain.gain.setValueAtTime(0.012, time); // Soft and muted
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.008);
+
+  osc.connect(gain);
+  gain.connect(masterVolume);
+  masterVolume.connect(audioCtx.destination);
+
+  osc.start(time);
+  osc.stop(time + 0.01);
+};
+
+// 4. Card Interaction Sound 2: Heavier analog double-tap click
+export const playAnalogDoubleTapClick = () => {
+  initAudio();
+  if (!audioCtx || getAudioEnabled() === false) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const time = audioCtx.currentTime;
+
+  // Tap 1: Lower frequency transient
+  const osc1 = audioCtx.createOscillator();
+  const gain1 = audioCtx.createGain();
+  osc1.type = 'triangle';
+  osc1.frequency.setValueAtTime(180, time);
+  osc1.frequency.exponentialRampToValueAtTime(60, time + 0.035);
+
+  gain1.gain.setValueAtTime(0.18, time);
+  gain1.gain.exponentialRampToValueAtTime(0.001, time + 0.035);
+
+  osc1.connect(gain1);
+  gain1.connect(masterVolume);
+
+  // Tap 2: Staggered second click (30ms offset)
+  const osc2 = audioCtx.createOscillator();
+  const gain2 = audioCtx.createGain();
+  osc2.type = 'triangle';
+  osc2.frequency.setValueAtTime(130, time + 0.025);
+  osc2.frequency.exponentialRampToValueAtTime(50, time + 0.065);
+
+  gain2.gain.setValueAtTime(0.12, time + 0.025);
+  gain2.gain.exponentialRampToValueAtTime(0.001, time + 0.065);
+
+  osc2.connect(gain2);
+  gain2.connect(masterVolume);
+
+  masterVolume.connect(audioCtx.destination);
+
+  osc1.start(time);
+  osc1.stop(time + 0.035);
+  osc2.start(time + 0.025);
+  osc2.stop(time + 0.065);
+};
+
+// 5. Scroll Telemetry Hum: Disabled completely per user request
+export const startScrollHum = (speed) => {
+  // No-op
+};
+
+const stopScrollHum = () => {
+  // No-op
+};

@@ -5,13 +5,7 @@ export const educationList = [
     degree: "Bachelor of Science in Computer Science (BSCS)",
     timeline: "2025 – 2029",
     details: "GPA: 3.02  |  Expected Graduation: June 2029",
-    courses: [
-      "Programming Fundamentals (C++)",
-      "Object-Oriented Programming (C++)",
-      "Discrete Mathematics",
-      "Calculus & Analytical Geometry"
-    ],
-    approach: "I focus on taking theoretical concepts—like using calculus to optimize network latency, or applying graph theory to analyze inflation networks—and applying them to practical software projects."
+    approach: "I see Computer Science as a path to understand complex systems and build technology with purpose. My focus is on applying academic concepts through practical projects, clean code, and meaningful digital solutions."
   },
   {
     id: "apc",
@@ -24,7 +18,7 @@ export const educationList = [
       "Physics",
       "Chemistry"
     ],
-    approach: "Built strong mathematical foundations in multivariable calculus, algebra, and physics, establishing the core analytical skills required for computational engineering."
+    approach: "My FSc Pre-Engineering journey strengthened my foundation in calculus and mathematical concepts, helping me prepare for admission into a top university."
   },
   {
     id: "aps",
@@ -33,10 +27,10 @@ export const educationList = [
     timeline: "2021 – 2023",
     details: "FBISE  |  1017 / 1100 (92.5%)",
     courses: [
-      "Computer Science",
+      "Biology",
       "Mathematics",
       "Physics"
     ],
-    approach: "Initiated core study in computer science logic, basic programming concepts, and analytical sciences, completing secondary education with high-standing academic honors."
+    approach: "My Matric journey helped me build self-learning skills and a disciplined approach to understanding core concepts."
   }
 ];

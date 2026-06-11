@@ -145,7 +145,7 @@ const Hero = () => {
           </div>
 
           <p className="text-sm md:text-base text-textMuted leading-relaxed max-w-2xl">
-            I am a BS Computer Science student at FAST-NUCES Islamabad, exploring AI, automation, software development, data analysis, and game systems through hands-on projects.
+            I am a BS Computer Science student at FAST-NUCES Islamabad, exploring generative AI, machine learning, and automation through hands-on projects.
           </p>
 
           <div className="flex flex-wrap gap-4 pt-4">

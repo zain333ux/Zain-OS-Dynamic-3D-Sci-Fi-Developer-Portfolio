@@ -68,7 +68,7 @@ const Preloader = ({ onComplete }) => {
     tl.set(containerRef.current, { visibility: 'visible' });
     tl.fromTo(crtLineRef.current, 
       { scaleX: 0, opacity: 0 }, 
-      { scaleX: 1, opacity: 1, duration: 0.5, ease: 'power3.inOut' }
+      { scaleX: 1, opacity: 1, duration: 0.3, ease: 'power3.inOut' }
     );
 
     // 2. Vertical flash expansion to reveal monitor screen
@@ -76,100 +76,100 @@ const Preloader = ({ onComplete }) => {
       scaleY: 120, // Expands to cover full height
       opacity: 0.05,
       backgroundColor: '#9CB080',
-      duration: 0.4,
+      duration: 0.25,
       ease: 'power2.inOut',
     });
 
     // 3. Fade in terminal screen opacity
     tl.to(consoleRef.current, {
       opacity: 1,
-      duration: 0.3
-    }, '-=0.2');
+      duration: 0.2
+    }, '-=0.1');
 
     // 4. Sequence typing diagnostic text
     const text1 = '// CORES_SYSTEM BOOTUP INITIALIZED...';
     const text2 = 'FAST-NUCES ISLAMABAD // SECTOR [2025-2029]';
     const text3 = 'LATTICE_MESH_PHYSICS: COMPILED_STABLE';
     const text4 = 'DECRYPTING ENGINEER CONSOLE PORTFOLIO: zain_ul_abideen';
-    const text5 = 'FOCUS_AREAS: [AI_SYSTEMS, COMPUTATIONAL_GRAPHS, GAME_ENGINES]';
+    const text5 = 'FOCUS_AREAS: [GENERATIVE_AI, MACHINE_LEARNING, AUTOMATION]';
 
     // Diagnostic typewriter sequence using manual state increments
     const textObj = { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0 };
     
     tl.to(textObj, {
       p1: 1,
-      duration: 0.35,
+      duration: 0.18,
       ease: 'none',
       onUpdate: () => setBootText1(scrambleText('p1', text1, textObj.p1))
     });
 
     tl.to(textObj, {
       p2: 1,
-      duration: 0.35,
+      duration: 0.18,
       ease: 'none',
       onUpdate: () => setBootText2(scrambleText('p2', text2, textObj.p2))
-    }, '+=0.08');
+    }, '+=0.04');
 
     tl.to(textObj, {
       p3: 1,
-      duration: 0.35,
+      duration: 0.18,
       ease: 'none',
       onUpdate: () => setBootText3(scrambleText('p3', text3, textObj.p3))
-    }, '+=0.08');
+    }, '+=0.04');
 
     tl.to(textObj, {
       p4: 1,
-      duration: 0.4,
+      duration: 0.2,
       ease: 'none',
       onUpdate: () => setBootText4(scrambleText('p4', text4, textObj.p4))
-    }, '+=0.08');
+    }, '+=0.04');
 
     tl.to(textObj, {
       p5: 1,
-      duration: 0.4,
+      duration: 0.2,
       ease: 'none',
       onUpdate: () => setBootText5(scrambleText('p5', text5, textObj.p5))
-    }, '+=0.08');
+    }, '+=0.04');
 
     // 5. Numerical loading percentage counter (0 to 100)
     const progressObj = { value: 0 };
     tl.to(progressObj, {
       value: 100,
-      duration: 1.0,
+      duration: 0.5,
       ease: 'power1.inOut',
       onUpdate: () => {
         setProgress(Math.floor(progressObj.value));
       }
-    }, '+=0.2');
+    }, '+=0.1');
 
     // 6. Flash CRT screen white and shrink dispersion animation
     tl.to(consoleRef.current, {
       scale: 0.95,
       opacity: 0,
       filter: 'blur(10px)',
-      duration: 0.4,
+      duration: 0.2,
       ease: 'power3.in'
-    }, '+=0.2');
+    }, '+=0.1');
 
     tl.to(crtLineRef.current, {
       scaleY: 1,
       opacity: 1,
       backgroundColor: '#618764', // shift to green on close
-      duration: 0.3,
+      duration: 0.15,
       ease: 'power4.out'
-    }, '-=0.2');
+    }, '-=0.1');
 
     tl.to(crtLineRef.current, {
       scaleX: 0,
       opacity: 0,
-      duration: 0.4,
+      duration: 0.2,
       ease: 'power4.inOut'
     });
 
     tl.to(containerRef.current, {
       opacity: 0,
       pointerEvents: 'none',
-      duration: 0.4
+      duration: 0.2
     });
 
   }, [onComplete, isPoweredOn]);

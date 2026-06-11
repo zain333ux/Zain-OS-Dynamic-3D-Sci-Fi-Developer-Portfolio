@@ -23,11 +23,12 @@ const Button = ({
     placeholder: "border-dashed border-white/20 text-textMuted cursor-not-allowed opacity-50"
   };
 
+  const isExternalLink = isExternal || (href && (href.startsWith('http') || href.startsWith('https')));
+
   const extraProps = isLink 
     ? {
         href,
-        target: "_blank",
-        rel: "noopener noreferrer",
+        ...(isExternalLink ? { target: "_blank", rel: "noopener noreferrer" } : {}),
         ...props
       }
     : {

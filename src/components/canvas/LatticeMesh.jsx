@@ -6,6 +6,9 @@ const LatticeMesh = ({ shouldReduceMotion }) => {
   const groupRef = useRef();
   const pointsGeomRef = useRef(null);
   const linesGeomRef = useRef(null);
+  const pointsMatRef = useRef(null);
+  const linesMatRef = useRef(null);
+  const frameCountRef = useRef(0);
   const [scrollProgress, setScrollProgress] = useState(0);
 
   // Monitor global scrolling ratios
@@ -75,6 +78,25 @@ const LatticeMesh = ({ shouldReduceMotion }) => {
   useFrame(({ clock, mouse, camera }) => {
     const time = clock.getElapsedTime();
     const isMobileViewport = window.innerWidth < 768;
+
+    // Rate-limited CSS theme synchronization
+    frameCountRef.current++;
+    if (frameCountRef.current % 10 === 0) {
+      try {
+        const rootStyle = getComputedStyle(document.documentElement);
+        const accentPrimary = rootStyle.getPropertyValue('--accent-dynamic').trim();
+        const accentSecondary = rootStyle.getPropertyValue('--accent-dynamic-secondary').trim();
+
+        if (accentPrimary && pointsMatRef.current) {
+          pointsMatRef.current.color.set(accentPrimary);
+        }
+        if (accentSecondary && linesMatRef.current) {
+          linesMatRef.current.color.set(accentSecondary);
+        }
+      } catch (err) {
+        console.warn("WebGL Theme Sync Error:", err);
+      }
+    }
 
     if (groupRef.current && !shouldReduceMotion) {
       // Slow background rotations driven by clock + scroll position
@@ -198,6 +220,7 @@ const LatticeMesh = ({ shouldReduceMotion }) => {
           />
         </bufferGeometry>
         <lineBasicMaterial 
+          ref={linesMatRef}
           color="#618764" 
           transparent 
           opacity={0.16} 
@@ -214,6 +237,7 @@ const LatticeMesh = ({ shouldReduceMotion }) => {
           />
         </bufferGeometry>
         <pointsMaterial
+          ref={pointsMatRef}
           color="#9CB080"
           size={0.07}
           sizeAttenuation

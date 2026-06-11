@@ -114,10 +114,48 @@ const snippets = {
   ]
 };
 
+const getLoss = (epoch) => {
+  const base = 0.5 * Math.pow(0.96, epoch) + 0.02;
+  const noise = (Math.sin(epoch * 0.9) * 0.005);
+  return Math.max(0.001, base + noise).toFixed(4);
+};
+
+const getAccuracy = (epoch) => {
+  const base = 80 + 19.5 * (1 - Math.pow(0.96, epoch));
+  const noise = (Math.sin(epoch * 0.9) * 0.15);
+  return Math.min(100, base + noise).toFixed(1);
+};
+
 const CodeBackdrop = ({ type = 'hero' }) => {
   const containerRef = useRef(null);
-  const codeLines = snippets[type] || snippets.hero;
+  const [currentEpoch, setCurrentEpoch] = React.useState(12);
+
+  useEffect(() => {
+    if (type !== 'skills' && type !== 'projects') return;
+    const timer = setInterval(() => {
+      setCurrentEpoch(prev => (prev >= 100 ? 1 : prev + 1));
+    }, 1500);
+    return () => clearInterval(timer);
+  }, [type]);
+
+  const baseCodeLines = snippets[type] || snippets.hero;
   
+  let codeLines = baseCodeLines;
+  if (type === 'skills' || type === 'projects') {
+    const ep1 = currentEpoch - 2 > 0 ? currentEpoch - 2 : 100 + (currentEpoch - 2);
+    const ep2 = currentEpoch - 1 > 0 ? currentEpoch - 1 : 100 + (currentEpoch - 1);
+    const ep3 = currentEpoch;
+    
+    const trainingLogs = [
+      "// NEURAL NETWORK TRAINING DIAGNOSTICS",
+      `[Epoch ${ep1.toString().padStart(3, ' ')}/100] Loss: ${getLoss(ep1)}  Accuracy: ${getAccuracy(ep1)}%`,
+      `[Epoch ${ep2.toString().padStart(3, ' ')}/100] Loss: ${getLoss(ep2)}  Accuracy: ${getAccuracy(ep2)}%`,
+      `[Epoch ${ep3.toString().padStart(3, ' ')}/100] Loss: ${getLoss(ep3)}  Accuracy: ${getAccuracy(ep3)}%`,
+      "// TRAINING RUN COMPILING METRICS..."
+    ];
+    codeLines = [...baseCodeLines, ...trainingLogs];
+  }
+
   // Duplicate array to enable seamless marquee scrolling
   const scrollLines = [...codeLines, ...codeLines, ...codeLines];
 

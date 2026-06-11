@@ -147,10 +147,10 @@ const About = () => {
               <h3 className="font-mono text-xs text-accentPurple uppercase tracking-widest">// Core Narrative</h3>
               <div className="space-y-4 text-sm text-textMuted leading-relaxed">
                 <p>
-                  I am a Computer Science student at FAST-NUCES Islamabad. I like learning how complex programs work behind the scenes and turning those ideas into clean, running code. My current academic projects focus on software programming, data analysis, and mathematical modeling.
+                  I am a Computer Science student at FAST-NUCES Islamabad, passionate about building clean, practical, and intelligent software systems. I enjoy exploring how programs work behind the scenes and turning complex ideas into efficient, working code.
                 </p>
                 <p>
-                  Rather than just using pre-built tools, I enjoy building core systems myself—like coding a custom game loop in C++ or writing a gradient descent calculator in Python. I am currently learning about AI architectures, automation tools, and full-stack development to build intelligent, practical software systems.
+                  My work focuses on software development, data analysis, mathematical modeling, AI, automation, and full-stack development. I especially enjoy building systems from scratch, as it helps me strengthen my core programming and problem-solving skills.
                 </p>
               </div>
             </Card>
@@ -162,16 +162,16 @@ const About = () => {
               <h3 className="font-mono text-xs text-accentCyan uppercase tracking-widest">// Focus Zones</h3>
               <div className="font-mono text-xs text-textMuted space-y-3">
                 <div>
-                  <span className="text-textPrimary font-semibold">01. SYSTEMS DEVELOPMENT</span>
-                  <p className="text-[11px] text-textMuted mt-1">C++, SFML, entity states, loops.</p>
+                  <span className="text-textPrimary font-semibold">01. GENERATIVE AI</span>
+                  <p className="text-[11px] text-textMuted mt-1">LLMs, RAG, agent workflows, prompt optimization.</p>
                 </div>
                 <div className="border-t border-cardBorder pt-3">
-                  <span className="text-textPrimary font-semibold">02. DATA SCIENCE &amp; MATH</span>
-                  <p className="text-[11px] text-textMuted mt-1">Graph networks, optimization, calculus.</p>
+                  <span className="text-textPrimary font-semibold">02. MACHINE LEARNING</span>
+                  <p className="text-[11px] text-textMuted mt-1">Regression math, model weights, cost functions.</p>
                 </div>
                 <div className="border-t border-cardBorder pt-3">
-                  <span className="text-textPrimary font-semibold">03. AI &amp; AUTOMATION</span>
-                  <p className="text-[11px] text-textMuted mt-1">LLMs, agent workflows, script scripting.</p>
+                  <span className="text-textPrimary font-semibold">03. AUTOMATION</span>
+                  <p className="text-[11px] text-textMuted mt-1">Workflow scripts, scrapers, system automation.</p>
                 </div>
               </div>
             </Card>

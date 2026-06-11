@@ -6,6 +6,7 @@ import CodeBackdrop from '../components/ui/CodeBackdrop';
 import { educationList } from '../data/education';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { playMutedRelayTick } from '../utils/audio';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -78,6 +79,7 @@ const Education = () => {
   // Vertical Drag handlers for discrete swipe tracking
   const handleMouseDown = (e) => {
     if (e.target.closest('a') || e.target.closest('button')) return;
+    playMutedRelayTick();
     setDragStartY(e.pageY);
     setIsDragging(true);
   };
@@ -230,13 +232,15 @@ const Education = () => {
                         {item.details}
                       </div>
 
-                      <div>
-                        <div className="flex flex-wrap gap-1.5 max-h-[48px] overflow-hidden">
-                          {item.courses.map((course, idx) => (
-                            <Badge key={idx} name={course} className="text-[9px] py-0.5" />
-                          ))}
+                      {item.courses && item.courses.length > 0 && (
+                        <div>
+                          <div className="flex flex-wrap gap-1.5 max-h-[48px] overflow-hidden">
+                            {item.courses.map((course, idx) => (
+                              <Badge key={idx} name={course} className="text-[9px] py-0.5" />
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
 

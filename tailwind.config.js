@@ -12,8 +12,8 @@ export default {
         cardBorder: "#273338",
         textPrimary: "#ECEFF1",
         textMuted: "#738587",
-        accentPurple: "#9CB080", // Sage Green (Phosphor Primary)
-        accentCyan: "#618764",   // Forest Green (Phosphor Secondary)
+        accentPurple: "var(--accent-dynamic, #9CB080)", // Dynamic primary color
+        accentCyan: "var(--accent-dynamic-secondary, #618764)",   // Dynamic secondary color
       },
       fontFamily: {
         sans: ["DM Sans", "sans-serif"],
@@ -21,8 +21,8 @@ export default {
         mono: ["Space Mono", "monospace"],
       },
       boxShadow: {
-        glowPurple: "0 0 15px rgba(156, 176, 128, 0.22)",
-        glowCyan: "0 0 15px rgba(97, 135, 100, 0.22)",
+        glowPurple: "0 0 15px var(--accent-dynamic-glow-strong, rgba(156, 176, 128, 0.22))",
+        glowCyan: "0 0 15px var(--accent-dynamic-glow-secondary, rgba(97, 135, 100, 0.22))",
       },
       animation: {
         'marquee-scroll': 'marquee-scroll 60s linear infinite',

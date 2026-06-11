@@ -14,7 +14,7 @@ export const achievements = [
   {
     id: "math-optimizer",
     code: "ACHV_03",
-    title: "Optimization Modeling",
-    description: "Coded a gradient descent optimizer from scratch in Python, calculating cost functions and derivatives to evaluate model convergence speed."
+    title: "Student Performance Prediction Model",
+    description: "Developed a multivariable linear regression model in Python to predict student performance from academic assessment data. Implemented the optimization process from scratch, including cost function analysis, gradient computation, and Gradient Descent, to connect mathematical theory with practical predictive modeling."
   }
 ];

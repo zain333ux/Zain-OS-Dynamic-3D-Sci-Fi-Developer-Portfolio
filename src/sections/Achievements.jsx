@@ -6,7 +6,7 @@ import { achievements } from '../data/achievements';
 
 const Achievements = () => {
   return (
-    <section className="section-pad relative overflow-hidden border-t border-cardBorder">
+    <section id="achievements" className="section-pad relative overflow-hidden border-t border-cardBorder">
       <CodeBackdrop type="achievements" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8">
         <Reveal>

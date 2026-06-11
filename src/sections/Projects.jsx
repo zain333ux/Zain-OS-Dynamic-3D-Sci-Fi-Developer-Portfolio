@@ -8,6 +8,7 @@ import ProjectCardVisualizer from '../components/ui/ProjectCardVisualizer';
 import { projects } from '../data/projects';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { playMutedRelayTick } from '../utils/audio';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -99,6 +100,7 @@ const Projects = () => {
   // Drag handlers for discrete swipe tracking
   const handleMouseDown = (e) => {
     if (e.target.closest('a') || e.target.closest('button')) return;
+    playMutedRelayTick();
     setDragStartX(e.pageX);
     setIsDragging(true);
   };

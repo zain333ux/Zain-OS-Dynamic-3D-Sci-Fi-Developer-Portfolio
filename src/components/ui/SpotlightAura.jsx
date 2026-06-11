@@ -55,7 +55,11 @@ const SpotlightAura = ({ shouldReduceMotion }) => {
     <div 
       ref={auraRef}
       id="scroll-spotlight"
-      className="fixed left-1/3 top-1/4 -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] max-w-[700px] max-h-[700px] rounded-full bg-gradient-to-br from-accentPurple/15 via-accentPurple/5 to-accentCyan/15 filter blur-[140px] pointer-events-none select-none z-[-2] opacity-80"
+      className="fixed left-1/3 top-1/4 -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] max-w-[700px] max-h-[700px] rounded-full filter blur-[140px] pointer-events-none select-none z-[-2] opacity-80"
+      style={{
+        background: `radial-gradient(circle, var(--accent-dynamic-glow-strong, rgba(156, 176, 128, 0.15)) 0%, var(--accent-dynamic-glow, rgba(97, 135, 100, 0.08)) 50%, transparent 80%)`,
+        transition: 'background 0.5s ease-out',
+      }}
       aria-hidden="true"
     />
   );

@@ -4,18 +4,18 @@
 .bg-mesh-gradient {
   background-color: #0D1315;
   background-image: 
-    radial-gradient(at 10% 20%, rgba(156, 176, 128, 0.12) 0px, transparent 50%),
-    radial-gradient(at 90% 80%, rgba(97, 135, 100, 0.08) 0px, transparent 50%),
+    radial-gradient(at 10% 20%, rgba(var(--accent-dynamic-rgb), 0.12) 0px, transparent 50%),
+    radial-gradient(at 90% 80%, rgba(var(--accent-dynamic-secondary-rgb), 0.08) 0px, transparent 50%),
     radial-gradient(at 50% 50%, rgba(13, 19, 21, 1) 0px, transparent 80%);
 }
 
 /* Monospace Glow Accents */
 .text-glow-purple {
-  text-shadow: 0 0 10px rgba(156, 176, 128, 0.45);
+  text-shadow: 0 0 10px rgba(var(--accent-dynamic-rgb), 0.45);
 }
 
 .text-glow-cyan {
-  text-shadow: 0 0 10px rgba(97, 135, 100, 0.45);
+  text-shadow: 0 0 10px rgba(var(--accent-dynamic-secondary-rgb), 0.45);
 }
 
 /* Custom Scrollbar Styles for Developer Console Theme */
@@ -29,14 +29,14 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 176, 128, 0.12);
+  background: rgba(var(--accent-dynamic-rgb), 0.12);
   border-radius: 3px;
-  border: 1px solid rgba(156, 176, 128, 0.03);
+  border: 1px solid rgba(var(--accent-dynamic-rgb), 0.03);
   transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9CB080;
+  background: var(--accent-dynamic);
 }
 
 /* Atmospheric Film / CRT Noise Overlay */
@@ -78,7 +78,16 @@
 }
 
 .glass-card:hover .stroke-card-svg-border {
-  stroke: #9CB080; /* Sage Green */
+  stroke: var(--accent-dynamic); /* Dynamic Accent */
   stroke-dashoffset: 0;
 }
 
+/* Dynamic Chatbot Typing Soundwave Animation */
+@keyframes soundwave {
+  0%, 100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1.3);
+  }
+}
