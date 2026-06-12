@@ -4,7 +4,7 @@ Welcome to the repository for my personal developer portfolio!
 
 Designed around a futuristic, hardware-accelerated **developer terminal overlay (Zain-OS)**, this project blends core mathematical modeling, 3D WebGL meshes, trigonometric carousels, and an offline AI chatbot to showcase my projects, skills, and academic journey.
 
-👉 **Live Site Link:** [portfolio-liard-eight-52.vercel.app](https://portfolio-liard-eight-52.vercel.app/)
+👉 **Live Site Link:** [https://portfolio-liard-eight-52.vercel.app/]
 
 ---
 
