@@ -237,7 +237,7 @@ export default function AiChatbot() {
           playHoverSound();
           setIsOpen(prev => !prev);
         }}
-        className={`w-12 h-12 rounded-full border border-cardBorder hover:border-accentPurple/60 flex items-center justify-center cursor-pointer transition-all duration-300 shadow-lg group relative ${
+        className={`w-10 h-10 md:w-12 md:h-12 rounded-full border border-cardBorder hover:border-accentPurple/60 flex items-center justify-center cursor-pointer transition-all duration-300 shadow-lg group relative touch-target ${
           isOpen 
             ? 'bg-accentPurple text-bgDark rotate-90 shadow-glowPurple border-accentPurple' 
             : 'bg-bgDark/90 hover:bg-bgDark text-accentPurple hover:text-textPrimary hover:scale-105'
@@ -245,9 +245,9 @@ export default function AiChatbot() {
         title="Consult AI Knowledge Agent"
       >
         {isOpen ? (
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4 md:w-5 md:h-5" />
         ) : (
-          <MessageSquare className="w-5 h-5" />
+          <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />
         )}
         
         {/* Floating tooltip hover label */}

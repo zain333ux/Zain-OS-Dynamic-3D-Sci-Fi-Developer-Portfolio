@@ -87,6 +87,9 @@ const Skills = () => {
   const [startX, setStartX] = useState(0);
   const [scrollLeftState, setScrollLeftState] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isAutoPlayActive, setIsAutoPlayActive] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const isInteractingRef = useRef(false);
 
   const handleMouseDown = (e) => {
     setIsDown(true);
@@ -96,6 +99,7 @@ const Skills = () => {
 
   const handleMouseLeave = () => {
     setIsDown(false);
+    setIsHovered(false);
   };
 
   const handleMouseUp = () => {
@@ -113,12 +117,14 @@ const Skills = () => {
   const handleScroll = () => {
     if (!containerRef.current) return;
     const container = containerRef.current;
-    const maxScroll = container.scrollWidth - container.clientWidth;
+    const halfWidth = container.scrollWidth / 2;
+    const maxScroll = halfWidth - container.clientWidth;
     if (maxScroll <= 0) {
       setScrollProgress(0);
       return;
     }
-    setScrollProgress(container.scrollLeft / maxScroll);
+    const currentScroll = container.scrollLeft % halfWidth;
+    setScrollProgress(Math.min(1, currentScroll / maxScroll));
   };
 
   const scroll = (direction) => {
@@ -130,6 +136,56 @@ const Skills = () => {
       behavior: 'smooth',
     });
   };
+
+  // Marquee auto-scroll loop
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let animationId;
+    const scrollSpeed = 0.5; // pixels per frame
+
+    const tick = () => {
+      // Pause marquee if dragging, hovered, touched, or auto-play is toggled off
+      if (isAutoPlayActive && !isHovered && !isDown && !isInteractingRef.current) {
+        container.scrollLeft += scrollSpeed;
+        
+        // Loop boundary check (when scrolled past the unique content length)
+        const halfWidth = container.scrollWidth / 2;
+        if (container.scrollLeft >= halfWidth) {
+          container.scrollLeft -= halfWidth;
+        } else if (container.scrollLeft <= 0) {
+          container.scrollLeft += halfWidth;
+        }
+      }
+      handleScroll();
+      animationId = requestAnimationFrame(tick);
+    };
+
+    animationId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animationId);
+  }, [isAutoPlayActive, isHovered, isDown]);
+
+  const skillsGroups = [
+    {
+      title: "// Core Programming",
+      items: skills.coreProgramming
+    },
+    {
+      title: "// Data & Mathematics",
+      items: skills.dataAndMath
+    },
+    {
+      title: "// AI & Automation Direction",
+      items: skills.aiAndAutomation
+    },
+    {
+      title: "// Tools I Use",
+      items: skills.toolsIUse
+    }
+  ];
+
+  const marqueeGroups = [...skillsGroups, ...skillsGroups];
 
   return (
     <section id="stack" className="section-pad relative overflow-hidden border-t border-cardBorder">
@@ -192,24 +248,33 @@ const Skills = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8">
         
         {/* Section Header */}
-        <div className="flex justify-between items-end gap-4 border-b border-cardBorder pb-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start lg:items-end gap-4 border-b border-cardBorder pb-4">
           <Reveal>
             <h2 className="font-heading text-3xl font-bold text-textPrimary tracking-wide">// Skills &amp; Technology Matrix</h2>
             <p className="text-xs text-textMuted font-mono mt-1 uppercase">// CURRENT DEVELOPMENT VECTORS &amp; PROFICIENCIES</p>
           </Reveal>
 
-          {/* Slider Buttons */}
+          {/* Slider Buttons / Telemetry Pause Toggle */}
           <Reveal delay={0.05}>
-            <div className="flex gap-2 font-mono text-[10px]">
+            <div className="flex items-center gap-1.5 md:gap-2 font-mono text-[8px] md:text-[10px]">
+              <button
+                onClick={() => setIsAutoPlayActive(!isAutoPlayActive)}
+                className={`flex items-center gap-1.5 px-2 py-1 md:px-3 md:py-1.5 border border-cardBorder bg-cardBg hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer touch-target`}
+                title={isAutoPlayActive ? "Click to Pause Marquee" : "Click to Resume Marquee"}
+              >
+                <span className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${isAutoPlayActive ? 'bg-accentPurple shadow-glowPurple animate-pulse' : 'bg-red-500'}`} />
+                <span>{isAutoPlayActive ? "AUTO: ACTIVE" : "AUTO: PAUSED"}</span>
+              </button>
+
               <button
                 onClick={() => scroll('left')}
-                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer"
+                className="px-2 py-1 md:px-3 md:py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer touch-target"
               >
                 &lt;&lt; PREV
               </button>
               <button
                 onClick={() => scroll('right')}
-                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer"
+                className="px-2 py-1 md:px-3 md:py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer touch-target"
               >
                 NEXT &gt;&gt;
               </button>
@@ -225,55 +290,26 @@ const Skills = () => {
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
           onScroll={handleScroll}
-          className="flex flex-row gap-6 overflow-x-auto scrollbar-none py-4 cursor-grab active:cursor-grabbing snap-x snap-mandatory relative z-10 select-none"
+          onMouseEnter={() => setIsHovered(true)}
+          onTouchStart={() => { isInteractingRef.current = true; }}
+          onTouchEnd={() => { isInteractingRef.current = false; }}
+          className={`flex flex-row gap-6 overflow-x-auto scrollbar-none py-4 cursor-grab active:cursor-grabbing relative z-10 select-none ${(isHovered || isDown || !isAutoPlayActive) ? 'snap-x snap-mandatory' : ''}`}
         >
-          {/* Card 1: Core Programming */}
-          <div className="snap-start flex-shrink-0 w-[85vw] sm:w-[360px] md:w-[400px]">
-            <Card className="flex flex-col justify-between h-full space-y-4">
-              <h3 className="font-mono text-xs font-bold text-textPrimary uppercase tracking-widest">// Core Programming</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.coreProgramming.map((skill, idx) => (
-                  <Badge key={idx} name={skill.name} level={skill.level} />
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          {/* Card 2: Data & Math */}
-          <div className="snap-start flex-shrink-0 w-[85vw] sm:w-[360px] md:w-[400px]">
-            <Card className="flex flex-col justify-between h-full space-y-4">
-              <h3 className="font-mono text-xs font-bold text-textPrimary uppercase tracking-widest">// Data &amp; Mathematics</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.dataAndMath.map((skill, idx) => (
-                  <Badge key={idx} name={skill.name} level={skill.level} />
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          {/* Card 3: AI / Automation Direction */}
-          <div className="snap-start flex-shrink-0 w-[85vw] sm:w-[360px] md:w-[400px]">
-            <Card className="flex flex-col justify-between h-full space-y-4">
-              <h3 className="font-mono text-xs font-bold text-textPrimary uppercase tracking-widest">// AI &amp; Automation Direction</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.aiAndAutomation.map((skill, idx) => (
-                  <Badge key={idx} name={skill.name} level={skill.level} />
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          {/* Card 4: Tools I Use */}
-          <div className="snap-start flex-shrink-0 w-[85vw] sm:w-[360px] md:w-[400px]">
-            <Card className="flex flex-col justify-between h-full space-y-4">
-              <h3 className="font-mono text-xs font-bold text-textPrimary uppercase tracking-widest">// Tools I Use</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.toolsIUse.map((skill, idx) => (
-                  <Badge key={idx} name={skill.name} level={skill.level} />
-                ))}
-              </div>
-            </Card>
-          </div>
+          {marqueeGroups.map((card, index) => (
+            <div 
+              key={index} 
+              className="snap-start flex-shrink-0 w-[85vw] sm:w-[360px] md:w-[400px]"
+            >
+              <Card className="flex flex-col justify-between h-full space-y-4">
+                <h3 className="font-mono text-xs font-bold text-textPrimary uppercase tracking-widest">{card.title}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {card.items.map((skill, idx) => (
+                    <Badge key={idx} name={skill.name} level={skill.level} />
+                  ))}
+                </div>
+              </Card>
+            </div>
+          ))}
         </div>
 
         {/* Console-style Progress Tracker */}
@@ -294,3 +330,4 @@ const Skills = () => {
 };
 
 export default Skills;
+

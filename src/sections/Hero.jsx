@@ -95,7 +95,7 @@ const Hero = () => {
   return (
     <section 
       id="home" 
-      className="min-h-screen flex items-center pt-20 relative bg-mesh-gradient overflow-hidden"
+      className="min-h-[100dvh] flex items-center pt-20 relative bg-mesh-gradient overflow-hidden"
     >
       <CodeBackdrop type="hero" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
@@ -109,7 +109,7 @@ const Hero = () => {
               ref={subtitleRef}
               className="font-mono text-xs md:text-sm text-textMuted font-medium flex flex-wrap items-center select-none"
             >
-              <span className="flex mr-2">
+              <span className="flex flex-wrap mr-2">
                 {nameString.split("").map((char, idx) => (
                   <span
                     key={idx}

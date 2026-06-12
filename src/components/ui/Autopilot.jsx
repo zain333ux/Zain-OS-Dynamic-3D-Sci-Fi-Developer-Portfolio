@@ -197,11 +197,14 @@ const Autopilot = () => {
         // Closed / Inactive Trigger Tab
         <button
           onClick={handleToggle}
-          className="glass-card bg-bgDark/80 hover:bg-bgDark/95 border border-cardBorder hover:border-accentPurple/50 text-textMuted hover:text-textPrimary py-2 px-3 rounded-sm transition-all duration-300 flex items-center gap-2 shadow-sm cursor-pointer"
+          className="glass-card bg-bgDark/80 hover:bg-bgDark/95 border border-cardBorder hover:border-accentPurple/50 text-textMuted hover:text-textPrimary py-1.5 px-2.5 md:py-2 md:px-3 rounded-sm transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-sm cursor-pointer touch-target"
           title="Start Cinematic Auto-scroll Tour"
         >
-          <span className="w-1.5 h-1.5 bg-textMuted rounded-full" />
-          <span className="tracking-widest font-bold font-mono">ENGAGE_AUTOPILOT.DAT</span>
+          <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-textMuted rounded-full" />
+          <span className="tracking-widest font-bold font-mono text-[8px] md:text-[10px]">
+            <span className="inline md:hidden">AUTO_TOUR</span>
+            <span className="hidden md:inline">ENGAGE_AUTOPILOT.DAT</span>
+          </span>
         </button>
       )}
     </div>

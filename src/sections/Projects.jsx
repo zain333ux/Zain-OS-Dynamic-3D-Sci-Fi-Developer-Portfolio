@@ -140,6 +140,38 @@ const Projects = () => {
     setDragStartX(null);
   };
 
+  // Touchscreen swipe handlers for mobile devices
+  const handleTouchStart = (e) => {
+    if (e.target.closest('a') || e.target.closest('button')) return;
+    if (e.touches && e.touches[0]) {
+      playMutedRelayTick();
+      setDragStartX(e.touches[0].clientX);
+      setIsDragging(true);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging || dragStartX === null) return;
+    if (e.touches && e.touches[0]) {
+      const currentX = e.touches[0].clientX;
+      const diffX = currentX - dragStartX;
+      const threshold = 40; // snappier threshold for touchscreens
+
+      if (diffX > threshold) {
+        handlePrev();
+        setDragStartX(currentX);
+      } else if (diffX < -threshold) {
+        handleNext();
+        setDragStartX(currentX);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    setDragStartX(null);
+  };
+
   const renderLinkButton = (key, link) => {
     const isComingSoon = link.type === 'coming-soon';
     
@@ -206,28 +238,28 @@ const Projects = () => {
 
           {/* Slider Controls */}
           <Reveal delay={0.05}>
-            <div className="flex items-center gap-3 font-mono text-[10px]">
+            <div className="flex items-center gap-1.5 md:gap-2 font-mono text-[8px] md:text-[10px]">
               {/* Play/Pause Toggle Indicator */}
               <button
                 onClick={() => setIsAutoPlayActive(!isAutoPlayActive)}
-                className={`flex items-center gap-2 px-3 py-1.5 border border-cardBorder bg-cardBg hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer`}
+                className={`flex items-center gap-1.5 px-2 py-1 md:px-3 md:py-1.5 border border-cardBorder bg-cardBg hover:border-accentPurple/50 text-textMuted hover:text-textPrimary transition-all duration-200 rounded-sm select-none cursor-pointer touch-target`}
                 title={isAutoPlayActive ? "Click to Pause Auto-rotation" : "Click to Play Auto-rotation"}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${isAutoPlayActive ? 'bg-accentPurple shadow-glowPurple animate-pulse' : 'bg-red-500'}`} />
+                <span className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${isAutoPlayActive ? 'bg-accentPurple shadow-glowPurple animate-pulse' : 'bg-red-500'}`} />
                 <span>{isAutoPlayActive ? "AUTO: PLAYING" : "AUTO: PAUSED"}</span>
               </button>
 
               <button
                 onClick={handlePrev}
                 disabled={filteredProjects.length <= 1}
-                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary disabled:opacity-30 disabled:pointer-events-none transition-all duration-200 rounded-sm select-none cursor-pointer"
+                className="px-2 py-1 md:px-3 md:py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary disabled:opacity-30 disabled:pointer-events-none transition-all duration-200 rounded-sm select-none cursor-pointer touch-target"
               >
                 &lt;&lt; PREV
               </button>
               <button
                 onClick={handleNext}
                 disabled={filteredProjects.length <= 1}
-                className="px-3 py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary disabled:opacity-30 disabled:pointer-events-none transition-all duration-200 rounded-sm select-none cursor-pointer"
+                className="px-2 py-1 md:px-3 md:py-1.5 border border-cardBorder bg-cardBg hover:bg-accentPurple/10 hover:border-accentPurple/50 text-textMuted hover:text-textPrimary disabled:opacity-30 disabled:pointer-events-none transition-all duration-200 rounded-sm select-none cursor-pointer touch-target"
               >
                 NEXT &gt;&gt;
               </button>
@@ -263,6 +295,9 @@ const Projects = () => {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           style={{ perspective: '1200px' }}
         >
           {filteredProjects.length === 0 ? (
@@ -297,11 +332,15 @@ const Projects = () => {
                 // Gently tilt Y angle facing inward
                 const ry = angle * (180 / Math.PI) * 0.45;
                 const scale = 0.8 + 0.2 * Math.cos(angle);
-                const opacity = 0.18 + 0.82 * (Math.cos(angle) + 1) / 2;
+                const opacity = windowWidth < 768
+                  ? (idx === activeIndex ? 1 : 0)
+                  : (0.18 + 0.82 * (Math.cos(angle) + 1) / 2);
                 const zIndex = Math.round((Math.cos(angle) + 1) * 100);
                 
                 // Only allow click interactions on the front-most card to preserve clean UX
-                const pointerEvents = Math.cos(angle) > 0.82 ? 'auto' : 'none';
+                const pointerEvents = windowWidth < 768
+                  ? (idx === activeIndex ? 'auto' : 'none')
+                  : (Math.cos(angle) > 0.82 ? 'auto' : 'none');
 
                 transformStyle = {
                   transform: `translate3d(${tx}px, 0, ${tz}px) rotateY(${ry}deg) scale(${scale})`,
@@ -324,7 +363,7 @@ const Projects = () => {
                   <Card className="flex flex-col justify-between h-full space-y-4 group relative overflow-hidden">
                     <ProjectCardVisualizer projectId={project.id} />
                     <div className="relative z-10 flex flex-col justify-between h-full space-y-4 flex-1">
-                      <div className="space-y-3">
+                      <div className="space-y-3 flex-1 overflow-y-auto pr-1 scrollbar-thin">
                         {/* Title and Badge */}
                         <div className="flex justify-between items-start gap-4">
                           <h3 className="text-base md:text-lg font-bold text-textPrimary leading-snug group-hover:text-accentPurple transition-colors">

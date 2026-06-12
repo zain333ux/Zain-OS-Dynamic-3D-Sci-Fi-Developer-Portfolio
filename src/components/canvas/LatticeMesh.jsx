@@ -256,6 +256,7 @@ const LatticeCanvas = ({ shouldReduceMotion }) => {
       <Canvas 
         camera={{ position: [0, 0, 4.6], fov: 60 }}
         gl={{ antialias: true, alpha: true }}
+        dpr={[1, 2]}
       >
         <Suspense fallback={null}>
           <LatticeMesh shouldReduceMotion={shouldReduceMotion} />
