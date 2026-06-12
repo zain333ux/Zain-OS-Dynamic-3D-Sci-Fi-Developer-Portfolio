@@ -26,6 +26,14 @@ const Autopilot = () => {
   const widgetRef = useRef(null);
   const tickRef = useRef(null);
 
+  // Sync body class & trigger custom state events when Autopilot state changes
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('autopilot-state', { detail: isActive }));
+    if (typeof document !== 'undefined') {
+      document.body.classList.toggle('autopilot-active', isActive);
+    }
+  }, [isActive]);
+
   // Toggle autopilot
   const handleToggle = () => {
     setIsActive((prev) => {

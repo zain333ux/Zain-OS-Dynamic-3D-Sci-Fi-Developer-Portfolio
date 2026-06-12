@@ -18,6 +18,7 @@ const Education = () => {
   // Auto-play state
   const [isAutoPlayActive, setIsAutoPlayActive] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
+  const [isAutopilotActive, setIsAutopilotActive] = useState(false);
   
   // Drag states
   const [dragStartY, setDragStartY] = useState(null);
@@ -25,6 +26,18 @@ const Education = () => {
   
   // Responsive tracking
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  // Monitor Autopilot active state changes
+  useEffect(() => {
+    const handleAutopilot = (e) => {
+      setIsAutopilotActive(e.detail);
+    };
+    window.addEventListener('autopilot-state', handleAutopilot);
+    if (typeof document !== 'undefined') {
+      setIsAutopilotActive(document.body.classList.contains('autopilot-active'));
+    }
+    return () => window.removeEventListener('autopilot-state', handleAutopilot);
+  }, []);
 
   // Viewport detection via GSAP ScrollTrigger to bypass browser 3D perspective bugs
   useEffect(() => {
@@ -57,14 +70,15 @@ const Education = () => {
 
   // Vertical autoplay loop
   useEffect(() => {
-    if (!isAutoPlayActive || isHovered || !isIntersecting || educationList.length <= 1) return;
+    const shouldPause = isHovered && !isAutopilotActive;
+    if (!isAutoPlayActive || shouldPause || !isIntersecting || educationList.length <= 1) return;
 
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % educationList.length);
     }, 3000);
 
     return () => clearInterval(timer);
-  }, [isAutoPlayActive, isHovered, isIntersecting]);
+  }, [isAutoPlayActive, isHovered, isIntersecting, isAutopilotActive]);
 
   const handlePrev = () => {
     if (educationList.length <= 1) return;
