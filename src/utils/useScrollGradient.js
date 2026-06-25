@@ -61,20 +61,12 @@ function getAccentColors(scrollPct) {
 }
 
 export default function useScrollGradient() {
-  const rafRef = useRef(null);
   const prevColor = useRef('');
   const prevColorSec = useRef('');
 
   useEffect(() => {
-    const handleThemeChange = (e) => {
-      const theme = e.detail;
-      sessionStorage.setItem('portfolio-theme', theme);
-    };
-    window.addEventListener('change-theme', handleThemeChange);
-    return () => window.removeEventListener('change-theme', handleThemeChange);
-  }, []);
+    let ticking = false;
 
-  useEffect(() => {
     const update = () => {
       const activeTheme = sessionStorage.getItem('portfolio-theme') || 'dynamic';
       let r, g, b;
@@ -125,14 +117,34 @@ export default function useScrollGradient() {
         window.__accentColors = colorsDetail;
         window.dispatchEvent(new CustomEvent('accent-colors-updated', { detail: colorsDetail }));
       }
-
-      rafRef.current = requestAnimationFrame(update);
     };
 
-    rafRef.current = requestAnimationFrame(update);
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          update();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    const handleThemeChange = (e) => {
+      const theme = e.detail;
+      sessionStorage.setItem('portfolio-theme', theme);
+      update();
+    };
+
+    // Listeners
+    window.addEventListener('change-theme', handleThemeChange);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Initial run on mount
+    update();
 
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      window.removeEventListener('change-theme', handleThemeChange);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 }
