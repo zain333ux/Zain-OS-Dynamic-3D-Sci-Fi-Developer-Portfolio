@@ -143,9 +143,14 @@ const Skills = () => {
     if (!container) return;
 
     let animationId;
+    let isIntersecting = false;
     const scrollSpeed = 0.5; // pixels per frame
 
     const tick = () => {
+      if (!isIntersecting) {
+        animationId = null;
+        return;
+      }
       // Pause marquee if dragging, hovered, touched, or auto-play is toggled off
       if (isAutoPlayActive && !isHovered && !isDown && !isInteractingRef.current) {
         container.scrollLeft += scrollSpeed;
@@ -162,8 +167,30 @@ const Skills = () => {
       animationId = requestAnimationFrame(tick);
     };
 
-    animationId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animationId);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isIntersecting = entry.isIntersecting;
+        if (isIntersecting) {
+          if (!animationId) {
+            animationId = requestAnimationFrame(tick);
+          }
+        } else {
+          if (animationId) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+          }
+        }
+      },
+      { threshold: 0.01 }
+    );
+    observer.observe(container);
+
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+      observer.disconnect();
+    };
   }, [isAutoPlayActive, isHovered, isDown]);
 
   const skillsGroups = [

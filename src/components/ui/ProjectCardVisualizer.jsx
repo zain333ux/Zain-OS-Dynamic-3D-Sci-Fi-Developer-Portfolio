@@ -91,8 +91,14 @@ const ProjectCardVisualizer = ({ projectId }) => {
       });
     }
 
+    let isIntersecting = false;
+
     // Main animation loop
     const animate = () => {
+      if (!isIntersecting) {
+        animationFrameId = null;
+        return;
+      }
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       time += 0.015;
       const w = canvas.width;
@@ -365,10 +371,29 @@ const ProjectCardVisualizer = ({ projectId }) => {
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    animate();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isIntersecting = entry.isIntersecting;
+        if (isIntersecting) {
+          if (!animationFrameId) {
+            animate();
+          }
+        } else {
+          if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+          }
+        }
+      },
+      { threshold: 0.01 }
+    );
+    observer.observe(container);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      observer.disconnect();
       window.removeEventListener('resize', resizeCanvas);
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseenter', handleMouseEnter);

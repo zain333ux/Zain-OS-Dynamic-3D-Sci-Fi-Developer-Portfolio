@@ -269,7 +269,7 @@ function App() {
       <CommandPalette isOpen={showPalette} onClose={() => setShowPalette(false)} />
 
       {/* Nebula: Animated cosmic gradient at z-index 0 (deepest layer) */}
-      {isBooted && !shouldReduceMotion && <NebulaBackground />}
+      {isBooted && !shouldReduceMotion && !isMobile && <NebulaBackground />}
 
       {/* Live IDE Terminal Background — persistent typing animation at z-index 1 */}
       {isBooted && !shouldReduceMotion && <LiveTerminal />}

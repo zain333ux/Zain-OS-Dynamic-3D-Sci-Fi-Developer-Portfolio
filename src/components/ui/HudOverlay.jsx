@@ -17,6 +17,15 @@ const SECTIONS = [
 function RadarCanvas({ size = 56 }) {
   const canvasRef = useRef(null);
   const angleRef = useRef(0);
+  const colorsRef = useRef(window.__accentColors || { primaryRGB: '156, 176, 128' });
+
+  useEffect(() => {
+    const handleColorsUpdate = (e) => {
+      colorsRef.current = e.detail;
+    };
+    window.addEventListener('accent-colors-updated', handleColorsUpdate);
+    return () => window.removeEventListener('accent-colors-updated', handleColorsUpdate);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -33,8 +42,7 @@ function RadarCanvas({ size = 56 }) {
     let raf;
 
     const draw = () => {
-      const rootStyle = getComputedStyle(document.documentElement);
-      const accentRGB = (rootStyle.getPropertyValue('--accent-dynamic-rgb') || '156, 176, 128').trim();
+      const accentRGB = (colorsRef.current.primaryRGB || '156, 176, 128').trim();
 
       ctx.clearRect(0, 0, size, size);
 
@@ -210,18 +218,31 @@ export default function HudOverlay() {
   const [memVal, setMemVal] = useState(2.1);
   const [netLatency, setNetLatency] = useState(128);
   const startTime = useRef(Date.now());
+  const [isMobile, setIsMobile] = useState(true);
 
-  // Mouse tracking
+  // Resize listener for mobile HUD suspension
   useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Mouse tracking (desktop only)
+  useEffect(() => {
+    if (isMobile) return;
     const handleMouse = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
     };
     window.addEventListener('mousemove', handleMouse, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouse);
-  }, []);
+  }, [isMobile]);
 
-  // Touch tracking for mobile HUD
+  // Touch tracking for mobile HUD (mobile only)
   useEffect(() => {
+    if (!isMobile) return;
     const handleTouch = (e) => {
       if (e.touches && e.touches[0]) {
         setTouchPos({
@@ -236,27 +257,44 @@ export default function HudOverlay() {
       window.removeEventListener('touchstart', handleTouch);
       window.removeEventListener('touchmove', handleTouch);
     };
+  }, [isMobile]);
+
+  // Asynchronous section detection using IntersectionObserver
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '-30% 0px -40% 0px', // detects active when section crosses mid-screen
+      threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter(e => e.isIntersecting);
+      if (visible.length > 0) {
+        setCurrentSection(visible[0].target.id);
+      }
+    }, observerOptions);
+
+    SECTIONS.forEach(sec => {
+      const el = document.getElementById(sec.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
-  // Scroll tracking + section detection
+  // Throttled scroll percentage tracking
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      const totalH = document.documentElement.scrollHeight - window.innerHeight;
-      const pct = totalH > 0 ? (window.scrollY / totalH) * 100 : 0;
-      setScrollPct(Math.min(100, Math.max(0, pct)));
-
-      // Detect current section
-      let active = 'home';
-      for (const sec of SECTIONS) {
-        const el = document.getElementById(sec.id);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= window.innerHeight / 2) {
-            active = sec.id;
-          }
-        }
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const totalH = document.documentElement.scrollHeight - window.innerHeight;
+          const pct = totalH > 0 ? (window.scrollY / totalH) * 100 : 0;
+          setScrollPct(Math.min(100, Math.max(0, pct)));
+          ticking = false;
+        });
+        ticking = true;
       }
-      setCurrentSection(active);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -292,155 +330,159 @@ export default function HudOverlay() {
   return (
     <>
       {/* Desktop HUD */}
-      <div
-        className="fixed inset-0 z-20 pointer-events-none select-none hidden md:block"
-        aria-hidden="true"
-        style={{ fontFamily: "'Space Mono', monospace" }}
-      >
-        <EdgeBrackets />
+      {!isMobile && (
+        <div
+          className="fixed inset-0 z-20 pointer-events-none select-none hidden md:block"
+          aria-hidden="true"
+          style={{ fontFamily: "'Space Mono', monospace" }}
+        >
+          <EdgeBrackets />
 
-        {/* ─── TOP-LEFT: Coordinates Tracker ──────────────────── */}
-        <div className="absolute top-20 left-5 text-[9px] leading-relaxed tracking-wider text-[#738587]/50 space-y-0.5">
-          <div>
-            <span className="text-accentPurple/40">X:</span>{' '}
-            <span className="text-[#738587]/60 tabular-nums">{String(mousePos.x).padStart(4, ' ')}</span>
-            {'  '}
-            <span className="text-accentPurple/40">Y:</span>{' '}
-            <span className="text-[#738587]/60 tabular-nums">{String(mousePos.y).padStart(4, ' ')}</span>
+          {/* ─── TOP-LEFT: Coordinates Tracker ──────────────────── */}
+          <div className="absolute top-20 left-5 text-[9px] leading-relaxed tracking-wider text-[#738587]/50 space-y-0.5">
+            <div>
+              <span className="text-accentPurple/40">X:</span>{' '}
+              <span className="text-[#738587]/60 tabular-nums">{String(mousePos.x).padStart(4, ' ')}</span>
+              {'  '}
+              <span className="text-accentPurple/40">Y:</span>{' '}
+              <span className="text-[#738587]/60 tabular-nums">{String(mousePos.y).padStart(4, ' ')}</span>
+            </div>
+            <div>
+              <span className="text-accentPurple/40">SCROLL:</span>{' '}
+              <span className="text-[#738587]/60 tabular-nums">{scrollPct.toFixed(1)}%</span>
+            </div>
+            <div>
+              <span className="text-accentPurple/40">SECTION:</span>{' '}
+              <span className="text-accentPurple/50 font-bold">{sectionLabel}</span>
+            </div>
+            <div className="mt-1 text-[7px] text-[#738587]/30">
+              ── VIEWPORT ──
+            </div>
+            <div className="text-[8px] text-[#738587]/30">
+              {window.innerWidth}x{window.innerHeight}
+            </div>
           </div>
-          <div>
-            <span className="text-accentPurple/40">SCROLL:</span>{' '}
-            <span className="text-[#738587]/60 tabular-nums">{scrollPct.toFixed(1)}%</span>
+
+          {/* ─── TOP-RIGHT: System Vitals ───────────────────────── */}
+          <div className="absolute top-20 right-5 text-[9px] leading-relaxed tracking-wider text-[#738587]/50 text-right space-y-0.5">
+            <div>
+              <span className="text-accentPurple/40">CPU:</span>{' '}
+              <span className="text-[#738587]/50 tabular-nums">{Math.round(cpuVal)}%</span>{' '}
+              <span className="text-accentPurple/30 text-[8px]">{cpuBar(cpuVal)}</span>
+            </div>
+            <div>
+              <span className="text-accentPurple/40">MEM:</span>{' '}
+              <span className="text-[#738587]/50 tabular-nums">{memVal.toFixed(1)}GB</span>{' '}
+              <span className="text-[#738587]/30">/ 8GB</span>
+            </div>
+            <div>
+              <span className="text-accentPurple/40">NET:</span>{' '}
+              <span className={`tabular-nums ${netLatency < 100 ? 'text-accentCyan/50' : netLatency < 200 ? 'text-yellow-500/50' : 'text-red-400/40'}`}>
+                {netLatency}ms
+              </span>
+            </div>
+            <div>
+              <span className="text-accentPurple/40">UPTIME:</span>{' '}
+              <span className="text-[#738587]/50 tabular-nums">{formatUptime(uptime)}</span>
+            </div>
+            <div className="mt-1 text-[7px] text-[#738587]/30 tracking-[0.15em]">
+              ── ZAIN-OS v1.0 ──
+            </div>
           </div>
-          <div>
-            <span className="text-accentPurple/40">SECTION:</span>{' '}
-            <span className="text-accentPurple/50 font-bold">{sectionLabel}</span>
+
+          {/* ─── BOTTOM-LEFT: Minimap ───────────────────────────── */}
+          <div className="absolute bottom-8 left-5">
+            <Minimap scrollPct={scrollPct} currentSection={currentSection} />
           </div>
-          <div className="mt-1 text-[7px] text-[#738587]/30">
-            ── VIEWPORT ──
+
+          {/* ─── BOTTOM-RIGHT: Radar ────────────────────────────── */}
+          <div className="absolute bottom-6 right-5 flex flex-col items-center gap-1">
+            <RadarCanvas size={56} />
+            <span className="text-[7px] tracking-[0.2em] text-[#738587]/30 uppercase">SCAN</span>
           </div>
-          <div className="text-[8px] text-[#738587]/30">
-            {window.innerWidth}x{window.innerHeight}
+
+          {/* ─── LEFT EDGE: Scroll Ticks ────────────────────────── */}
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+            {Array.from({ length: 8 }, (_, i) => {
+              const tickPct = (i / 7) * 100;
+              const isNear = Math.abs(scrollPct - tickPct) < 10;
+              return (
+                <div
+                  key={i}
+                  className="transition-all duration-300"
+                  style={{
+                    width: isNear ? 12 : 6,
+                    height: 1,
+                    background: isNear
+                      ? 'var(--accent-dynamic)'
+                      : 'rgba(115, 133, 135, 0.15)',
+                    opacity: isNear ? 0.8 : 0.25,
+                  }}
+                />
+              );
+            })}
+          </div>
+
+          {/* ─── RIGHT EDGE: Data Ticks ─────────────────────────── */}
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+            {Array.from({ length: 8 }, (_, i) => {
+              const tickPct = (i / 7) * 100;
+              const isNear = Math.abs(scrollPct - tickPct) < 10;
+              return (
+                <div
+                  key={i}
+                  className="transition-all duration-300 ml-auto"
+                  style={{
+                    width: isNear ? 12 : 6,
+                    height: 1,
+                    background: isNear
+                      ? 'var(--accent-dynamic)'
+                      : 'rgba(115, 133, 135, 0.15)',
+                    opacity: isNear ? 0.8 : 0.25,
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
+      )}
 
-        {/* ─── TOP-RIGHT: System Vitals ───────────────────────── */}
-        <div className="absolute top-20 right-5 text-[9px] leading-relaxed tracking-wider text-[#738587]/50 text-right space-y-0.5">
-          <div>
-            <span className="text-accentPurple/40">CPU:</span>{' '}
-            <span className="text-[#738587]/50 tabular-nums">{Math.round(cpuVal)}%</span>{' '}
-            <span className="text-accentPurple/30 text-[8px]">{cpuBar(cpuVal)}</span>
-          </div>
-          <div>
-            <span className="text-accentPurple/40">MEM:</span>{' '}
-            <span className="text-[#738587]/50 tabular-nums">{memVal.toFixed(1)}GB</span>{' '}
-            <span className="text-[#738587]/30">/ 8GB</span>
-          </div>
-          <div>
-            <span className="text-accentPurple/40">NET:</span>{' '}
-            <span className={`tabular-nums ${netLatency < 100 ? 'text-accentCyan/50' : netLatency < 200 ? 'text-yellow-500/50' : 'text-red-400/40'}`}>
-              {netLatency}ms
+      {/* Mobile HUD Widget */}
+      {isMobile && (
+        <div 
+          className="fixed top-20 right-4 z-40 md:hidden font-mono text-[9px] bg-bgDark/80 border border-cardBorder rounded p-2 text-textMuted/70 space-y-1.5 backdrop-blur-md shadow-lg pointer-events-none select-none w-[110px]"
+          style={{ borderColor: 'rgba(var(--accent-dynamic-rgb), 0.3)' }}
+        >
+          <div className="flex items-center gap-1.5 border-b border-cardBorder/40 pb-1 text-[8px]">
+            <span 
+              className="w-1 h-1 bg-accentCyan rounded-full animate-pulse" 
+              style={{ backgroundColor: 'var(--accent-dynamic)' }} 
+            />
+            <span 
+              className="text-textMuted/70 font-bold uppercase tracking-wider" 
+              style={{ color: 'var(--accent-dynamic)' }}
+            >
+              SYS_HUD
             </span>
           </div>
           <div>
-            <span className="text-accentPurple/40">UPTIME:</span>{' '}
-            <span className="text-[#738587]/50 tabular-nums">{formatUptime(uptime)}</span>
+            <span className="text-textMuted/40">T_X:</span>{' '}
+            <span className="text-textPrimary font-bold tabular-nums">{touchPos.x}</span>
           </div>
-          <div className="mt-1 text-[7px] text-[#738587]/30 tracking-[0.15em]">
-            ── ZAIN-OS v1.0 ──
+          <div>
+            <span className="text-textMuted/40">T_Y:</span>{' '}
+            <span className="text-textPrimary font-bold tabular-nums">{touchPos.y}</span>
+          </div>
+          <div>
+            <span className="text-textMuted/40">SCR:</span>{' '}
+            <span className="text-textPrimary font-bold tabular-nums">{scrollPct.toFixed(0)}%</span>
+          </div>
+          <div>
+            <span className="text-textMuted/40">CPU:</span>{' '}
+            <span className="text-textPrimary font-bold tabular-nums">{Math.round(cpuVal)}%</span>
           </div>
         </div>
-
-        {/* ─── BOTTOM-LEFT: Minimap ───────────────────────────── */}
-        <div className="absolute bottom-8 left-5">
-          <Minimap scrollPct={scrollPct} currentSection={currentSection} />
-        </div>
-
-        {/* ─── BOTTOM-RIGHT: Radar ────────────────────────────── */}
-        <div className="absolute bottom-6 right-5 flex flex-col items-center gap-1">
-          <RadarCanvas size={56} />
-          <span className="text-[7px] tracking-[0.2em] text-[#738587]/30 uppercase">SCAN</span>
-        </div>
-
-        {/* ─── LEFT EDGE: Scroll Ticks ────────────────────────── */}
-        <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-3">
-          {Array.from({ length: 8 }, (_, i) => {
-            const tickPct = (i / 7) * 100;
-            const isNear = Math.abs(scrollPct - tickPct) < 10;
-            return (
-              <div
-                key={i}
-                className="transition-all duration-300"
-                style={{
-                  width: isNear ? 12 : 6,
-                  height: 1,
-                  background: isNear
-                    ? 'var(--accent-dynamic)'
-                    : 'rgba(115, 133, 135, 0.15)',
-                  opacity: isNear ? 0.8 : 0.25,
-                }}
-              />
-            );
-          })}
-        </div>
-
-        {/* ─── RIGHT EDGE: Data Ticks ─────────────────────────── */}
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-3">
-          {Array.from({ length: 8 }, (_, i) => {
-            const tickPct = (i / 7) * 100;
-            const isNear = Math.abs(scrollPct - tickPct) < 10;
-            return (
-              <div
-                key={i}
-                className="transition-all duration-300 ml-auto"
-                style={{
-                  width: isNear ? 12 : 6,
-                  height: 1,
-                  background: isNear
-                    ? 'var(--accent-dynamic)'
-                    : 'rgba(115, 133, 135, 0.15)',
-                  opacity: isNear ? 0.8 : 0.25,
-                }}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Mobile HUD Widget */}
-      <div 
-        className="fixed top-20 right-4 z-40 md:hidden font-mono text-[9px] bg-bgDark/80 border border-cardBorder rounded p-2 text-textMuted/70 space-y-1.5 backdrop-blur-md shadow-lg pointer-events-none select-none w-[110px]"
-        style={{ borderColor: 'rgba(var(--accent-dynamic-rgb), 0.3)' }}
-      >
-        <div className="flex items-center gap-1.5 border-b border-cardBorder/40 pb-1 text-[8px]">
-          <span 
-            className="w-1 h-1 bg-accentCyan rounded-full animate-pulse" 
-            style={{ backgroundColor: 'var(--accent-dynamic)' }} 
-          />
-          <span 
-            className="text-textMuted/70 font-bold uppercase tracking-wider" 
-            style={{ color: 'var(--accent-dynamic)' }}
-          >
-            SYS_HUD
-          </span>
-        </div>
-        <div>
-          <span className="text-textMuted/40">T_X:</span>{' '}
-          <span className="text-textPrimary font-bold tabular-nums">{touchPos.x}</span>
-        </div>
-        <div>
-          <span className="text-textMuted/40">T_Y:</span>{' '}
-          <span className="text-textPrimary font-bold tabular-nums">{touchPos.y}</span>
-        </div>
-        <div>
-          <span className="text-textMuted/40">SCR:</span>{' '}
-          <span className="text-textPrimary font-bold tabular-nums">{scrollPct.toFixed(0)}%</span>
-        </div>
-        <div>
-          <span className="text-textMuted/40">CPU:</span>{' '}
-          <span className="text-textPrimary font-bold tabular-nums">{Math.round(cpuVal)}%</span>
-        </div>
-      </div>
+      )}
     </>
   );
 }

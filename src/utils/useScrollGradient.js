@@ -1,5 +1,14 @@
 import { useEffect, useRef } from 'react';
 
+if (typeof window !== 'undefined') {
+  window.__accentColors = window.__accentColors || {
+    primary: 'rgb(156, 176, 128)',
+    secondary: 'rgb(97, 135, 100)',
+    primaryRGB: '156, 176, 128',
+    secondaryRGB: '97, 135, 100'
+  };
+}
+
 // Section color zones — each zone defines a scroll range and two accent colors to blend
 const COLOR_ZONES = [
   { start: 0,   end: 0.15, from: [8, 145, 178],   to: [6, 182, 212]   }, // Hero: deep cyan
@@ -106,6 +115,15 @@ export default function useScrollGradient() {
         style.setProperty('--accent-dynamic-secondary', `rgb(${colorStrSec})`);
         style.setProperty('--accent-dynamic-secondary-rgb', colorStrSec);
         style.setProperty('--accent-dynamic-glow-secondary', `rgba(${colorStrSec}, 0.22)`);
+
+        const colorsDetail = {
+          primary: `rgb(${colorStr})`,
+          secondary: `rgb(${colorStrSec})`,
+          primaryRGB: colorStr,
+          secondaryRGB: colorStrSec
+        };
+        window.__accentColors = colorsDetail;
+        window.dispatchEvent(new CustomEvent('accent-colors-updated', { detail: colorsDetail }));
       }
 
       rafRef.current = requestAnimationFrame(update);

@@ -8,19 +8,32 @@ const LatticeMesh = ({ shouldReduceMotion }) => {
   const linesGeomRef = useRef(null);
   const pointsMatRef = useRef(null);
   const linesMatRef = useRef(null);
-  const frameCountRef = useRef(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const scrollProgressRef = useRef(0);
+  const colorsRef = useRef(window.__accentColors || {
+    primary: 'rgb(156, 176, 128)',
+    secondary: 'rgb(97, 135, 100)'
+  });
 
   // Monitor global scrolling ratios
   useEffect(() => {
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
       if (totalScroll > 0) {
-        setScrollProgress(window.scrollY / totalScroll);
+        scrollProgressRef.current = window.scrollY / totalScroll;
       }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Sync accent colors from global event
+  useEffect(() => {
+    const handleColorsUpdate = (e) => {
+      colorsRef.current = e.detail;
+    };
+    window.addEventListener('accent-colors-updated', handleColorsUpdate);
+    return () => window.removeEventListener('accent-colors-updated', handleColorsUpdate);
   }, []);
 
   // Generate stable procedural points once (useMemo)
@@ -79,28 +92,22 @@ const LatticeMesh = ({ shouldReduceMotion }) => {
     const time = clock.getElapsedTime();
     const isMobileViewport = window.innerWidth < 768;
 
-    // Rate-limited CSS theme synchronization
-    frameCountRef.current++;
-    if (frameCountRef.current % 10 === 0) {
-      try {
-        const rootStyle = getComputedStyle(document.documentElement);
-        const accentPrimary = rootStyle.getPropertyValue('--accent-dynamic').trim();
-        const accentSecondary = rootStyle.getPropertyValue('--accent-dynamic-secondary').trim();
-
-        if (accentPrimary && pointsMatRef.current) {
-          pointsMatRef.current.color.set(accentPrimary);
-        }
-        if (accentSecondary && linesMatRef.current) {
-          linesMatRef.current.color.set(accentSecondary);
-        }
-      } catch (err) {
-        console.warn("WebGL Theme Sync Error:", err);
-      }
+    // Sync colors from ref inside useFrame (no DOM querying, no layout thrashing)
+    const activeColors = colorsRef.current;
+    if (pointsMatRef.current && pointsMatRef.current.userData.lastColor !== activeColors.primary) {
+      pointsMatRef.current.color.set(activeColors.primary);
+      pointsMatRef.current.userData.lastColor = activeColors.primary;
     }
+    if (linesMatRef.current && linesMatRef.current.userData.lastColor !== activeColors.secondary) {
+      linesMatRef.current.color.set(activeColors.secondary);
+      linesMatRef.current.userData.lastColor = activeColors.secondary;
+    }
+
+    const currentScrollProgress = scrollProgressRef.current;
 
     if (groupRef.current && !shouldReduceMotion) {
       // Slow background rotations driven by clock + scroll position
-      groupRef.current.rotation.y = time * 0.025 + scrollProgress * Math.PI * 0.5;
+      groupRef.current.rotation.y = time * 0.025 + currentScrollProgress * Math.PI * 0.5;
       groupRef.current.rotation.z = time * 0.005;
 
       // Mouse coordinate parallax
@@ -108,13 +115,13 @@ const LatticeMesh = ({ shouldReduceMotion }) => {
       groupRef.current.rotation.y += mouse.x * 0.06;
 
       // Dolly zoom + camera parallax offsets: Camera shifts positions based on scroll progression
-      const targetZ = 4.6 + Math.sin(scrollProgress * Math.PI) * 0.9;
-      const targetY = -scrollProgress * 2.2;
-      const targetX = Math.cos(scrollProgress * Math.PI) * 0.4;
+      const targetZ = 4.6 + Math.sin(currentScrollProgress * Math.PI) * 0.9;
+      const targetY = -currentScrollProgress * 2.2;
+      const targetX = Math.cos(currentScrollProgress * Math.PI) * 0.4;
       camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.08);
       camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.08);
       camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.08);
-      camera.rotation.z = THREE.MathUtils.lerp(camera.rotation.z, scrollProgress * 0.12, 0.08);
+      camera.rotation.z = THREE.MathUtils.lerp(camera.rotation.z, currentScrollProgress * 0.12, 0.08);
     }
 
     // Spring physics mouse attraction (active on desktop viewports)

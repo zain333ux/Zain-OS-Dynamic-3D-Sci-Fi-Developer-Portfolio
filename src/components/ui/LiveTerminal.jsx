@@ -491,18 +491,22 @@ export default function LiveTerminal() {
       // Clear
       ctx.clearRect(0, 0, w, h);
 
-      // Layer 1: Grid
-      drawGrid(ctx, w, h, now);
+      const isMobile = w < 768;
 
-      // Layer 2: Hex data nodes
-      drawHexNodes(ctx, state.hexNodes, now);
+      if (!isMobile) {
+        // Layer 1: Grid
+        drawGrid(ctx, w, h, now);
 
-      // Layer 3: Particle network
-      tickParticles(state.particles, w, h, dt);
-      drawParticles(ctx, state.particles);
+        // Layer 2: Hex data nodes
+        drawHexNodes(ctx, state.hexNodes, now);
 
-      // Layer 4: Scanline sweep
-      drawScanline(ctx, w, h, now);
+        // Layer 3: Particle network
+        tickParticles(state.particles, w, h, dt);
+        drawParticles(ctx, state.particles);
+
+        // Layer 4: Scanline sweep
+        drawScanline(ctx, w, h, now);
+      }
 
       // Layer 5: Terminal columns
       for (const col of state.columns) {
@@ -510,12 +514,14 @@ export default function LiveTerminal() {
         drawColumn(ctx, col);
       }
 
-      // Layer 6: CRT vignette
-      const vigGrad = ctx.createRadialGradient(w / 2, h / 2, h * 0.3, w / 2, h / 2, h * 0.9);
-      vigGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      vigGrad.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
-      ctx.fillStyle = vigGrad;
-      ctx.fillRect(0, 0, w, h);
+      if (!isMobile) {
+        // Layer 6: CRT vignette
+        const vigGrad = ctx.createRadialGradient(w / 2, h / 2, h * 0.3, w / 2, h / 2, h * 0.9);
+        vigGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        vigGrad.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
+        ctx.fillStyle = vigGrad;
+        ctx.fillRect(0, 0, w, h);
+      }
 
       animRef.current = requestAnimationFrame(render);
     };
