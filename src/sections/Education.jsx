@@ -20,6 +20,12 @@ const Education = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [isAutopilotActive, setIsAutopilotActive] = useState(false);
   
+  // Carousel and touch gesture refs
+  const carouselRef = useRef(null);
+  const touchStartXRef = useRef(null);
+  const touchStartYRef = useRef(null);
+  const isTouchDraggingRef = useRef(false);
+  
   // Drag states
   const [dragStartY, setDragStartY] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -119,37 +125,76 @@ const Education = () => {
     setDragStartY(null);
   };
 
-  // Touchscreen swipe handlers for vertical scrolling on mobile
-  const handleTouchStart = (e) => {
-    if (e.target.closest('a') || e.target.closest('button')) return;
-    if (e.touches && e.touches[0]) {
-      playMutedRelayTick();
-      setDragStartY(e.touches[0].clientY);
-      setIsDragging(true);
-    }
-  };
+  // Touchscreen swipe handlers with vertical scroll preservation
+  useEffect(() => {
+    const container = carouselRef.current;
+    if (!container) return;
 
-  const handleTouchMove = (e) => {
-    if (!isDragging || dragStartY === null) return;
-    if (e.touches && e.touches[0]) {
-      const currentY = e.touches[0].clientY;
-      const diffY = currentY - dragStartY;
-      const threshold = 40; // snappier threshold for touchscreens
-
-      if (diffY > threshold) {
-        handlePrev(); // Swipe down -> previous card
-        setDragStartY(currentY);
-      } else if (diffY < -threshold) {
-        handleNext(); // Swipe up -> next card
-        setDragStartY(currentY);
+    const handleTouchStart = (e) => {
+      if (e.target.closest('a') || e.target.closest('button')) return;
+      if (e.touches && e.touches[0]) {
+        playMutedRelayTick();
+        touchStartXRef.current = e.touches[0].clientX;
+        touchStartYRef.current = e.touches[0].clientY;
+        isTouchDraggingRef.current = true;
       }
-    }
-  };
+    };
 
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    setDragStartY(null);
-  };
+    const handleTouchMove = (e) => {
+      if (!isTouchDraggingRef.current || touchStartXRef.current === null || touchStartYRef.current === null) return;
+      if (e.touches && e.touches[0]) {
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const diffX = currentX - touchStartXRef.current;
+        const diffY = currentY - touchStartYRef.current;
+        
+        const absDiffX = Math.abs(diffX);
+        const absDiffY = Math.abs(diffY);
+
+        // If swipe is primarily vertical, intercept it to rotate card
+        if (absDiffY > absDiffX) {
+          // Prevent vertical page scroll only if the swipe is significant enough to rotate card
+          if (absDiffY > 20) {
+            if (e.cancelable) e.preventDefault();
+          }
+
+          const threshold = 40; // snappier threshold
+          if (diffY > threshold) {
+            handlePrev();
+            touchStartXRef.current = currentX;
+            touchStartYRef.current = currentY;
+          } else if (diffY < -threshold) {
+            handleNext();
+            touchStartXRef.current = currentX;
+            touchStartYRef.current = currentY;
+          }
+        } else {
+          // If the user swiped horizontally, cancel drag so page scroll takes over cleanly
+          if (absDiffX > 10) {
+            isTouchDraggingRef.current = false;
+            touchStartXRef.current = null;
+            touchStartYRef.current = null;
+          }
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      isTouchDraggingRef.current = false;
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [educationList, activeIndex]);
 
   // Vertical radius based on responsive screen width
   const getVerticalRadius = () => {
@@ -206,15 +251,13 @@ const Education = () => {
 
         {/* 3D Vertical Rotating Carousel Container */}
         <div 
+          ref={carouselRef}
           className="relative w-full h-[480px] md:h-[540px] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => { setIsHovered(false); handleMouseUp(); }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           style={{ perspective: '1200px' }}
         >
           {educationList.map((item, idx) => {

@@ -24,6 +24,10 @@ const Projects = () => {
   const [activeFilter, setActiveFilter] = useState("All");
   const [activeIndex, setActiveIndex] = useState(0);
   const sectionRef = useRef(null);
+  const carouselRef = useRef(null);
+  const touchStartXRef = useRef(null);
+  const touchStartYRef = useRef(null);
+  const isTouchDraggingRef = useRef(false);
   const [isIntersecting, setIsIntersecting] = useState(false);
   
   // Auto-play state
@@ -140,37 +144,74 @@ const Projects = () => {
     setDragStartX(null);
   };
 
-  // Touchscreen swipe handlers for mobile devices
-  const handleTouchStart = (e) => {
-    if (e.target.closest('a') || e.target.closest('button')) return;
-    if (e.touches && e.touches[0]) {
-      playMutedRelayTick();
-      setDragStartX(e.touches[0].clientX);
-      setIsDragging(true);
-    }
-  };
+  // Touchscreen swipe handlers with vertical scroll preservation
+  useEffect(() => {
+    const container = carouselRef.current;
+    if (!container) return;
 
-  const handleTouchMove = (e) => {
-    if (!isDragging || dragStartX === null) return;
-    if (e.touches && e.touches[0]) {
-      const currentX = e.touches[0].clientX;
-      const diffX = currentX - dragStartX;
-      const threshold = 40; // snappier threshold for touchscreens
-
-      if (diffX > threshold) {
-        handlePrev();
-        setDragStartX(currentX);
-      } else if (diffX < -threshold) {
-        handleNext();
-        setDragStartX(currentX);
+    const handleTouchStart = (e) => {
+      if (e.target.closest('a') || e.target.closest('button')) return;
+      if (e.touches && e.touches[0]) {
+        playMutedRelayTick();
+        touchStartXRef.current = e.touches[0].clientX;
+        touchStartYRef.current = e.touches[0].clientY;
+        isTouchDraggingRef.current = true;
       }
-    }
-  };
+    };
 
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    setDragStartX(null);
-  };
+    const handleTouchMove = (e) => {
+      if (!isTouchDraggingRef.current || touchStartXRef.current === null || touchStartYRef.current === null) return;
+      if (e.touches && e.touches[0]) {
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const diffX = currentX - touchStartXRef.current;
+        const diffY = currentY - touchStartYRef.current;
+        
+        const absDiffX = Math.abs(diffX);
+        const absDiffY = Math.abs(diffY);
+
+        // If swipe is primarily horizontal, intercept it
+        if (absDiffX > absDiffY) {
+          // Prevent vertical page scroll during active carousel swipe
+          if (e.cancelable) e.preventDefault();
+
+          const threshold = 40; // snappier threshold
+          if (diffX > threshold) {
+            handlePrev();
+            touchStartXRef.current = currentX;
+            touchStartYRef.current = currentY;
+          } else if (diffX < -threshold) {
+            handleNext();
+            touchStartXRef.current = currentX;
+            touchStartYRef.current = currentY;
+          }
+        } else {
+          // If the user swiped vertically, cancel the drag so page scroll takes over cleanly
+          if (absDiffY > 10) {
+            isTouchDraggingRef.current = false;
+            touchStartXRef.current = null;
+            touchStartYRef.current = null;
+          }
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      isTouchDraggingRef.current = false;
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [filteredProjects, activeIndex]);
 
   const renderLinkButton = (key, link) => {
     const isComingSoon = link.type === 'coming-soon';
@@ -289,15 +330,13 @@ const Projects = () => {
 
         {/* 3D Rotating Carousel Container */}
         <div 
+          ref={carouselRef}
           className="relative w-full h-[520px] md:h-[580px] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => { setIsHovered(false); handleMouseUp(); }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           style={{ perspective: '1200px' }}
         >
           {filteredProjects.length === 0 ? (
